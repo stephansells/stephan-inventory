@@ -18,7 +18,7 @@
 <meta name="twitter:card" content="summary_large_image">
 <meta name="twitter:image" content="https://stephansellscars.netlify.app/og.png">
 <script>/* Cloudflare Web Analytics: paste the site token between the quotes to switch it on. */
-var CF_TOKEN="";
+var CF_TOKEN="73cad4d60e0243629a831024342e9671";
 if(CF_TOKEN){var _b=document.createElement("script");_b.defer=true;
 _b.src="https://static.cloudflareinsights.com/beacon.min.js";
 _b.setAttribute("data-cf-beacon",JSON.stringify({token:CF_TOKEN}));document.head.appendChild(_b);}</script>
@@ -55,6 +55,7 @@ _b.setAttribute("data-cf-beacon",JSON.stringify({token:CF_TOKEN}));document.head
   --shadow:0 1px 2px rgba(0,0,0,.5), 0 10px 26px -18px rgba(0,0,0,.9);
 }
 *{box-sizing:border-box}
+[hidden]{display:none!important}
 html,body{margin:0;padding:0}
 body{background:var(--paper);color:var(--ink);font-family:var(--fb);font-size:16px;line-height:1.55;-webkit-font-smoothing:antialiased}
 img{max-width:100%;display:block}
@@ -65,7 +66,9 @@ button{font:inherit;color:inherit;cursor:pointer}
 header.top{position:sticky;top:0;z-index:40;background:var(--bar);color:var(--bar-ink);
   padding-top:env(safe-area-inset-top,0px);box-shadow:0 1px 0 rgba(0,0,0,.2)}
 .topin{max-width:1180px;margin:0 auto;padding:11px 18px;display:flex;align-items:center;gap:14px;flex-wrap:wrap}
-.brand{display:flex;flex-direction:column;line-height:1;margin-right:auto}
+.brand{display:flex;flex-direction:column;line-height:1;margin-right:auto;align-items:flex-start;
+  background:none;border:none;padding:0;color:inherit;cursor:pointer;text-align:left;font:inherit}
+.brand:hover b{color:var(--accent)}
 .brand b{font-family:var(--fd);font-weight:700;font-size:25px;letter-spacing:.005em;text-transform:uppercase}
 .brand span{font-family:var(--fl);font-weight:500;font-size:11.5px;letter-spacing:.16em;text-transform:uppercase;opacity:.62;margin-top:3px}
 .cta{display:flex;gap:9px;align-items:center}
@@ -181,8 +184,95 @@ main{max-width:1180px;margin:0 auto;padding:22px 18px 60px}
 .lead .hp{position:absolute;left:-9999px}
 .lmsg{font-family:var(--fl);font-weight:600;font-size:14.5px;margin:2px 0 0}
 .lmsg.ok{color:var(--good)}.lmsg.bad{color:var(--accent)}
+.dcontact{border-top:1px solid var(--rule);padding-top:20px;margin-top:4px}
+.dcontact h3{font-family:var(--fd);font-weight:700;font-size:23px;text-transform:uppercase;margin:0 0 4px}
+.dcontact p.intro{color:var(--muted);font-size:14.5px;margin:0 0 13px}
+.dcontact form{display:flex;flex-direction:column;gap:9px}
+.dcontact input,.dcontact textarea{font-family:var(--fb);font-size:15.5px;padding:11px 12px;
+  border:1px solid var(--rule);border-radius:2px;background:var(--surface);color:var(--ink);width:100%}
+.dcontact textarea{resize:vertical;min-height:70px}
+.dcontact input:focus,.dcontact textarea:focus{outline:2px solid var(--accent);outline-offset:-2px}
+.dcontact button{align-self:flex-start;cursor:pointer}
+.dcontact .hp{position:absolute;left:-9999px}
+.dcontact .soc{margin-top:16px}
+.dcontact .soc a{display:inline-block;border:1px solid var(--rule);border-radius:999px;padding:7px 14px;
+  font-family:var(--fl);font-weight:600;font-size:13px;letter-spacing:.04em;color:var(--accent);
+  text-decoration:none;background:var(--surface)}
+.dcontact .soc a:hover{background:var(--accent);border-color:var(--accent);color:var(--on-accent)}
+
+/* always-visible contact bar on phones */
+.quick{position:fixed;left:0;right:0;bottom:0;z-index:50;display:none;gap:8px;padding:9px 12px;
+  padding-bottom:calc(9px + env(safe-area-inset-bottom,0px));
+  background:var(--bar);border-top:1px solid rgba(255,255,255,.12)}
+.quick a,.quick button{flex:1;display:flex;align-items:center;justify-content:center;border:none;border-radius:3px;
+  font-family:var(--fl);font-weight:600;font-size:14px;letter-spacing:.04em;text-transform:uppercase;
+  padding:13px 8px;text-decoration:none;cursor:pointer;white-space:nowrap}
+.quick .q1{background:var(--accent);color:var(--on-accent)}
+.quick .q2{background:rgba(255,255,255,.12);color:var(--bar-ink)}
+@media (max-width:820px){.quick{display:flex}body{padding-bottom:74px}
+  .card,.more,#lead,footer{scroll-margin-bottom:84px}}
 
 /* share */
+/* concierge */
+.cbub{position:fixed;right:16px;bottom:16px;z-index:70;width:58px;height:58px;border:none;border-radius:50%;
+  background:var(--accent);color:var(--on-accent);display:grid;place-items:center;cursor:pointer;
+  box-shadow:0 6px 22px -6px rgba(0,0,0,.45);padding:0}
+.cbub:hover{background:var(--accent-hi)}
+.cbub .dot{position:absolute;top:-2px;right:-2px;min-width:20px;height:20px;border-radius:999px;
+  background:var(--good);color:#fff;font-family:var(--fl);font-weight:700;font-size:11px;
+  display:grid;place-items:center;padding:0 5px;border:2px solid var(--paper)}
+.cpanel{position:fixed;right:16px;bottom:16px;z-index:71;width:min(370px,calc(100vw - 32px));
+  max-height:min(560px,calc(100vh - 100px));display:flex;flex-direction:column;
+  background:var(--paper);border:1px solid var(--rule);border-radius:8px;overflow:hidden;
+  box-shadow:0 18px 50px -12px rgba(0,0,0,.45)}
+.chead{display:flex;align-items:center;gap:10px;padding:13px 14px;background:var(--bar);color:var(--bar-ink);flex:0 0 auto}
+.chead b{font-family:var(--fd);font-weight:700;font-size:19px;text-transform:uppercase;line-height:1.05;display:block}
+.chead span{font-family:var(--fl);font-size:12px;letter-spacing:.06em;text-transform:uppercase;opacity:.65}
+.cx{margin-left:auto;background:rgba(255,255,255,.12);border:none;border-radius:3px;color:var(--bar-ink);
+  width:30px;height:30px;font-size:19px;line-height:1;cursor:pointer;flex:0 0 auto}
+.cx:hover{background:rgba(255,255,255,.22)}
+.cbody{flex:1 1 auto;overflow-y:auto;padding:14px;display:flex;flex-direction:column;gap:10px;-webkit-overflow-scrolling:touch}
+.msg{max-width:88%;padding:10px 13px;border-radius:12px;font-size:15px;line-height:1.45}
+.msg.bot{background:var(--surface);border:1px solid var(--rule);border-bottom-left-radius:3px;align-self:flex-start}
+.msg.me{background:var(--accent);color:var(--on-accent);border-bottom-right-radius:3px;align-self:flex-end}
+.msg b{font-weight:600}
+.copts{display:flex;flex-wrap:wrap;gap:7px;align-self:flex-start;max-width:100%}
+.copts button{background:var(--surface);border:1px solid var(--accent);border-radius:999px;color:var(--accent);
+  font-family:var(--fl);font-weight:600;font-size:13.5px;padding:8px 14px;cursor:pointer;text-align:left}
+.copts button:hover{background:var(--accent);color:var(--on-accent)}
+.copts button.ghost{border-color:var(--rule);color:var(--muted)}
+.copts button.ghost:hover{background:var(--surface-2);color:var(--ink);border-color:var(--muted)}
+.chit{display:flex;gap:10px;align-items:center;width:100%;background:var(--surface);border:1px solid var(--rule);
+  border-radius:6px;padding:8px;cursor:pointer;text-align:left;font:inherit;color:inherit}
+.chit:hover{border-color:var(--accent)}
+.chit .cth{flex:0 0 76px;height:52px;background:var(--surface-2);overflow:hidden;position:relative;border-radius:3px}
+.chit .cth img{width:100%;height:100%;object-fit:cover}
+.chit .cth img.brd{position:absolute;width:107.9%;left:-3.96%;top:-24.5%;height:auto;object-fit:unset}
+.chit .cinfo{min-width:0;flex:1}
+.chit .cnm{font-family:var(--fd);font-weight:600;font-size:16px;line-height:1.15;
+  white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.chit .cpr{font-family:var(--fd);font-weight:700;font-size:16px;color:var(--accent);line-height:1.2}
+.chit .csub{font-family:var(--fl);font-size:11.5px;letter-spacing:.05em;text-transform:uppercase;color:var(--muted)}
+.chits{display:flex;flex-direction:column;gap:7px;align-self:stretch}
+.cform{align-self:stretch;display:flex;flex-direction:column;gap:8px;background:var(--surface);
+  border:1px solid var(--rule);border-radius:6px;padding:12px}
+.cform input,.cform textarea{font-family:var(--fb);font-size:15px;padding:10px 11px;border:1px solid var(--rule);
+  border-radius:3px;background:var(--paper);color:var(--ink);width:100%}
+.cform textarea{resize:vertical;min-height:58px}
+.cform input:focus,.cform textarea:focus{outline:2px solid var(--accent);outline-offset:-2px}
+.cform .hp{position:absolute;left:-9999px}
+.cform button[type=submit]{background:var(--accent);color:var(--on-accent);border:none;border-radius:3px;
+  font-family:var(--fl);font-weight:600;font-size:14px;letter-spacing:.04em;text-transform:uppercase;
+  padding:12px;cursor:pointer}
+.cform .lmsg{font-size:14px;margin:0}
+@media (max-width:820px){
+  .cbub{bottom:84px;right:12px;width:52px;height:52px}
+  .cpanel{right:8px;left:8px;bottom:80px;width:auto;max-height:calc(100vh - 160px)}
+}
+@media (prefers-reduced-motion:no-preference){
+  .cpanel{animation:cin .18s ease-out}
+  @keyframes cin{from{opacity:0;transform:translateY(10px)}to{opacity:1;transform:none}}
+}
 .toast{position:fixed;left:50%;bottom:26px;transform:translateX(-50%) translateY(14px);z-index:90;
   background:var(--ink);color:var(--paper);font-family:var(--fl);font-weight:600;font-size:14.5px;
   padding:12px 18px;border-radius:3px;opacity:0;pointer-events:none;transition:opacity .18s,transform .18s;
@@ -264,7 +354,7 @@ footer{border-top:1px solid var(--rule);background:var(--surface);margin-top:10p
 
 <header class="top">
   <div class="topin">
-    <div class="brand"><b>Stephan Sells Cars</b><span>Matteson, Illinois</span></div>
+    <button class="brand" id="home" aria-label="Back to all inventory"><b>Stephan Sells Cars</b><span>Matteson, Illinois</span></button>
     <div class="cta">
       <a class="btn btn-a" href="tel:+17089633553">Call</a>
       <a class="btn btn-b" href="sms:+17089633553">Text</a>
@@ -316,8 +406,9 @@ footer{border-top:1px solid var(--rule);background:var(--surface);margin-top:10p
       <h3>Not ready to call?</h3>
       <p class="intro">Tell me what you're after &mdash; model, budget, trade-in &mdash; and I'll come back to you with real options, usually the same day.</p>
     </div>
-    <form name="inquiry" method="POST" data-netlify="true" data-netlify-honeypot="bot-field" id="leadform">
+    <form class="leadf" name="inquiry" method="POST" data-netlify="true" data-netlify-honeypot="bot-field" id="leadform">
       <input type="hidden" name="form-name" value="inquiry">
+      <input type="hidden" name="vehicle" value="">
       <p class="hp"><label>Leave this empty <input name="bot-field" tabindex="-1" autocomplete="off"></label></p>
       <div class="lrow">
         <input name="name" placeholder="Your name" required autocomplete="name" aria-label="Your name">
@@ -325,16 +416,34 @@ footer{border-top:1px solid var(--rule);background:var(--surface);margin-top:10p
       </div>
       <input name="email" type="email" placeholder="Email (optional)" autocomplete="email" aria-label="Email address">
       <textarea name="message" rows="3" placeholder="What are you looking for?" aria-label="What are you looking for"></textarea>
-      <button type="submit" class="btn btn-a" id="leadbtn">Send to Stephan</button>
-      <p class="lmsg" id="lmsg" hidden role="status"></p>
+      <button type="submit" class="btn btn-a">Send to Stephan</button>
+      <p class="lmsg" hidden role="status"></p>
     </form>
   </div>
 </section>
 
+<nav class="quick" id="quick" aria-label="Contact Stephan">
+  <a class="q1" href="sms:+17089633553">Text</a>
+  <a class="q2" href="tel:+17089633553">Call</a>
+  <button class="q2" id="quickask">Email</button>
+</nav>
+
+<button class="cbub" id="cbub" aria-label="Help me find a car">
+  <svg viewBox="0 0 24 24" width="25" height="25" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 11.5a8.4 8.4 0 0 1-9 8.4 9.5 9.5 0 0 1-3.3-.6L3 21l1.8-5.1A8.3 8.3 0 0 1 3.6 11.5 8.4 8.4 0 0 1 12 3.1a8.4 8.4 0 0 1 9 8.4Z"/></svg>
+  <span class="dot" id="cdot" hidden></span>
+</button>
+<div class="cpanel" id="cpanel" role="dialog" aria-modal="false" aria-label="Find a car" hidden>
+  <div class="chead">
+    <div><b>Find your car</b><span>Straight to Stephan</span></div>
+    <button class="cx" id="cx" aria-label="Close chat">&times;</button>
+  </div>
+  <div class="cbody" id="cbody"></div>
+</div>
+
 <div class="toast" id="toast" role="status" aria-live="polite"></div>
 
 <footer><div class="fin">
-  <div><h4>Stephan Sells Cars</h4><p>Gerald Auto Group &middot; Matteson, IL</p></div>
+  <div><h4>Stephan Sells Cars</h4><p>Sales associate at Gerald Kia of Matteson</p></div>
   <div><p>Call or text <a href="tel:+17089633553">(708) 963-3553</a></p><p id="stamp"></p>
     <div class="soc"><a href="https://www.facebook.com/profile.php?id=61591198603993" target="_blank" rel="noopener noreferrer">Facebook</a><a href="https://www.instagram.com/stephansellscars/" target="_blank" rel="noopener noreferrer">Instagram</a><a href="https://www.tiktok.com/@stephansellscars" target="_blank" rel="noopener noreferrer">TikTok</a></div>
   </div>
@@ -367,7 +476,7 @@ const FKEYS = ["maxp","model","drive","fuel"];
 function activeCount(){
   return (state.maxp?1:0) + (state.model!=="All"?1:0) + (state.drive!=="All"?1:0) + (state.fuel!=="All"?1:0);
 }
-const PAGE = 60;
+const PAGE = (innerWidth < 700 || innerHeight < 560) ? 24 : 60;
 let shown = PAGE;
 
 function chips(){
@@ -495,6 +604,32 @@ $("#grid").addEventListener("click", e => {
   open(V.find(v => v.s === c.dataset.s));
 });
 
+const SOCIAL = [["Facebook","https://www.facebook.com/profile.php?id=61591198603993"],
+                ["Instagram","https://www.instagram.com/stephansellscars/"],
+                ["TikTok","https://www.tiktok.com/@stephansellscars"]];
+const socialLinks = () => SOCIAL.map(([n,u]) =>
+  `<a href="${u}" target="_blank" rel="noopener noreferrer">${n}</a>`).join("");
+
+function contactBlock(v){
+  const tag = `${label(v)}${v.tr?" "+v.tr:""} (Stock ${v.s})`;
+  return `<div class="dcontact">
+    <h3>Questions on this one?</h3>
+    <p class="intro">Send it over and I'll get back to you \u2014 usually the same day.</p>
+    <form class="leadf" name="inquiry" method="POST" data-netlify="true" data-netlify-honeypot="bot-field">
+      <input type="hidden" name="form-name" value="inquiry">
+      <input type="hidden" name="vehicle" value="${esc(tag)}">
+      <p class="hp"><label>Leave this empty <input name="bot-field" tabindex="-1" autocomplete="off"></label></p>
+      <input name="name" placeholder="Your name" required autocomplete="name" aria-label="Your name">
+      <input name="phone" type="tel" placeholder="Phone" required autocomplete="tel" aria-label="Phone number">
+      <input name="email" type="email" placeholder="Email (optional)" autocomplete="email" aria-label="Email address">
+      <textarea name="message" rows="2" placeholder="Anything you want to know about this one?" aria-label="Your message"></textarea>
+      <button type="submit" class="btn btn-a">Send to Stephan</button>
+      <p class="lmsg" hidden role="status"></p>
+    </form>
+    <div class="soc">${socialLinks()}</div>
+  </div>`;
+}
+
 let gi = 0, cur = null;
 function setPhoto(i){
   if (!cur || !cur.g.length) return;
@@ -542,6 +677,7 @@ function open(v){
       <div class="specs"><dl>${spec.map(([k,val])=>
         `<div class="row"><dt>${esc(k)}</dt><dd class="${k==="VIN"||k==="Mileage"?"tnum":""}">${esc(val)}</dd></div>`).join("")}</dl></div>
       ${v.d?`<div class="desc"><h3>About this vehicle</h3><p>${esc(v.d)}</p></div>`:""}
+      ${contactBlock(v)}
       <div class="stickybuy"><div class="acts">
         <a class="btn btn-a" href="sms:${PHONE}?&body=${msg}">Text Stephan</a>
         <a class="btn btn-b" style="background:var(--ink);color:var(--paper)" href="tel:${PHONE}">Call</a>
@@ -569,6 +705,8 @@ function open(v){
     }, {passive:true});
     setPhoto(0);
   }
+  CH.detailViews++;
+  $("#cbub").hidden = true; $("#cpanel").hidden = true;
   $("#sheet").classList.add("on");
   document.body.style.overflow = "hidden";
   $("#sheet").scrollTop = 0;
@@ -577,11 +715,15 @@ function open(v){
 function close(){
   $("#sheet").classList.remove("on");
   document.body.style.overflow = "";
+  $("#cbub").hidden = CH.isOpen;
+  $("#cpanel").hidden = !CH.isOpen;
+  if (CH.detailViews >= 2) setTimeout(chatNudge, 400);
   history.pushState({}, "", location.pathname);
 }
 $("#back").addEventListener("click", close);
 addEventListener("popstate", () => { if (!location.hash) { $("#sheet").classList.remove("on"); document.body.style.overflow=""; } });
 addEventListener("keydown", e => {
+  if (e.key === "Escape" && !$("#cpanel").hidden){ cClose(); return; }
   if (!$("#sheet").classList.contains("on")) return;
   if (e.key === "Escape") close();
   else if (e.key === "ArrowRight" && cur && cur.g.length > 1) setPhoto(gi+1);
@@ -614,6 +756,27 @@ matchMedia("(prefers-color-scheme: dark)").addEventListener("change", () => {
 paintToggle();
 
 const SITE = "https://stephansellscars.netlify.app";
+function goHome(){
+  if ($("#sheet").classList.contains("on")) close();
+  state.kind = "new"; state.q = ""; state.body = "All"; state.sort = "pl";
+  clearFilters();
+  V = DATA.new; shown = PAGE;
+  $("#q").value = ""; $("#sort").value = state.sort;
+  [...$("#tabs").children].forEach(c => c.setAttribute("aria-selected", c.dataset.k === "new"));
+  $("#fpanel").classList.remove("on"); $("#fbtn").setAttribute("aria-expanded", "false");
+  chips(); buildFilters(); render();
+  history.replaceState({}, "", location.pathname);
+  scrollTo({ top: 0, behavior: "smooth" });
+}
+$("#home").addEventListener("click", goHome);
+$("#quickask").addEventListener("click", () => {
+  if ($("#sheet").classList.contains("on")){
+    const f = $("#sheet").querySelector("form.leadf");
+    if (f){ f.scrollIntoView({behavior:"smooth", block:"center"}); f.querySelector("input[name=name]").focus({preventScroll:true}); return; }
+  }
+  $("#lead").scrollIntoView({ behavior: "smooth", block: "start" });
+  setTimeout(() => $("#leadform").querySelector("input[name=name]").focus({preventScroll:true}), 500);
+});
 let toastT = 0;
 function toast(msg, ms){
   const el = $("#toast");
@@ -633,9 +796,10 @@ $("#share").addEventListener("click", async () => {
   catch (e) { toast(url, 8000); }
 });
 
-$("#leadform").addEventListener("submit", e => {
+document.addEventListener("submit", e => {
+  const f = e.target.closest("form.leadf"); if (!f) return;
   e.preventDefault();
-  const f = e.target, btn = $("#leadbtn"), m = $("#lmsg");
+  const btn = f.querySelector("button[type=submit]"), m = f.querySelector(".lmsg");
   const say = (text, ok) => { m.hidden = false; m.textContent = text; m.className = "lmsg " + (ok ? "ok" : "bad"); };
   btn.disabled = true; btn.textContent = "Sending\u2026"; m.hidden = true;
   fetch("/", { method: "POST",
@@ -647,6 +811,201 @@ $("#leadform").addEventListener("submit", e => {
     .finally(() => { btn.disabled = false; btn.textContent = "Send to Stephan"; });
 });
 
+/* ---------------- concierge: a guided picker over the real inventory ---------------- */
+const CH = { kind:null, maxp:0, body:null, opened:false, isOpen:false, seeded:false, detailViews:0 };
+const cBody = () => $("#cbody");
+function cScroll(){ const b = cBody(); b.scrollTop = b.scrollHeight; }
+function cAdd(cls, html){
+  const d = document.createElement("div"); d.className = cls; d.innerHTML = html;
+  cBody().appendChild(d); cScroll(); return d;
+}
+const cBot  = html => cAdd("msg bot", html);
+const cMe   = text => cAdd("msg me", esc(text));
+function cOpts(list){
+  const row = cAdd("copts", "");
+  list.forEach(([labelTxt, fn, ghost]) => {
+    const b = document.createElement("button");
+    b.type = "button"; b.textContent = labelTxt; if (ghost) b.className = "ghost";
+    b.addEventListener("click", () => {
+      [...cBody().querySelectorAll(".copts")].forEach(r => r.remove());
+      if (!ghost || labelTxt !== "Start over") cMe(labelTxt);
+      fn();
+    });
+    row.appendChild(b);
+  });
+  cScroll(); return row;
+}
+const cPool = () => (CH.kind === "used" ? DATA.used : DATA.new);
+function cFiltered(){
+  return cPool().filter(v => (!CH.maxp || v.p <= CH.maxp) && (!CH.body || v.b === CH.body))
+                .sort((a,b) => a.p - b.p);
+}
+const freshCount = () => [...DATA.new, ...DATA.used].filter(v => v.nw).length;
+const dropCount  = () => [...DATA.new, ...DATA.used].filter(v => v.was).length;
+
+function cStart(){
+  CH.kind = null; CH.maxp = 0; CH.body = null;
+  cBot("Hi \u2014 I'm Stephan's assistant. I can narrow down the lot in about four taps.");
+  const fresh = freshCount(), drops = dropCount();
+  const opts = [["Help me find a car", cKind]];
+  if (fresh || drops) opts.push([
+    drops && fresh ? `What's new (${fresh + drops})` : drops ? `Price drops (${drops})` : `Just arrived (${fresh})`,
+    cWhatsNew]);
+  opts.push(["Just text Stephan", cJustText, true]);
+  cOpts(opts);
+}
+function cKind(){
+  cBot("New or pre-owned?");
+  cOpts([
+    [`New Kia (${DATA.new.length})`,  () => { CH.kind = "new";  cBudget(); }],
+    [`Pre-owned (${DATA.used.length})`, () => { CH.kind = "used"; cBudget(); }],
+    ["Not sure yet", () => { CH.kind = "new"; cBot("No problem \u2014 I'll start with the new Kias; you can switch any time."); cBudget(); }, true]
+  ]);
+}
+function cBudget(){
+  const ps = cPool().map(v => v.p).sort((a,b) => a - b);
+  const at = f => Math.ceil(ps[Math.floor(ps.length * f)] / 5000) * 5000;
+  const steps = [...new Set([at(.2), at(.5), at(.8)])];
+  cBot("What's the most you'd want to spend?");
+  cOpts(steps.map(s => [`Under ${money(s)}`, () => { CH.maxp = s; cBodyStep(); }])
+        .concat([["No limit", () => { CH.maxp = 0; cBodyStep(); }, true]]));
+}
+function cBodyStep(){
+  const pool = cPool().filter(v => !CH.maxp || v.p <= CH.maxp);
+  const counts = {};
+  pool.forEach(v => { counts[v.b] = (counts[v.b] || 0) + 1; });
+  const bodies = Object.entries(counts).sort((a,b) => b[1] - a[1]);
+  if (!bodies.length) return cResults();
+  cBot("What kind of vehicle?");
+  cOpts(bodies.map(([b, n]) => [`${b} (${n})`, () => { CH.body = b; cResults(); }])
+        .concat([["Show me everything", () => { CH.body = null; cResults(); }, true]]));
+}
+function cSummary(){
+  return [CH.kind === "used" ? "Pre-owned" : "New Kia",
+          CH.maxp ? "under " + money(CH.maxp) : "any price",
+          CH.body || "any body style"].join(", ");
+}
+function cResults(){
+  const hits = cFiltered();
+  if (!hits.length) return cNoMatch();
+  cBot(`${hits.length === 1 ? "One match" : hits.length + " matches"} for <b>${esc(cSummary())}</b>. Here ${hits.length === 1 ? "it is" : "are the closest"}:`);
+  const list = cAdd("chits", "");
+  hits.slice(0, 3).forEach(v => {
+    const b = document.createElement("button");
+    b.type = "button"; b.className = "chit";
+    b.innerHTML = `<span class="cth"><img class="${v.br ? "brd" : ""}" src="${esc(img(v.g[0], 160))}" alt="" loading="lazy"></span>
+      <span class="cinfo"><span class="cnm">${esc(label(v))}</span>
+        <span class="cpr">${money(v.p)}</span>
+        <span class="csub">${v.k === "new" ? "New" : miles(v.mi)}${v.dr ? " \u00b7 " + esc(v.dr) : ""}${v.was ? " \u00b7 price drop" : ""}${v.nw ? " \u00b7 just arrived" : ""}</span></span>`;
+    b.addEventListener("click", () => { cClose(); open(v); });
+    list.appendChild(b);
+  });
+  cScroll();
+  const opts = [];
+  if (hits.length > 3) opts.push([`See all ${hits.length} on the page`, () => cApply(hits.length)]);
+  opts.push(["Text me these", () => cLead("matches", hits)]);
+  opts.push(["None of these \u2014 find me one", () => cNoMatch(true)]);
+  opts.push(["Start over", () => { cBody().innerHTML = ""; cStart(); }, true]);
+  cOpts(opts);
+}
+function cApply(n){
+  state.kind = CH.kind; V = cPool(); state.maxp = CH.maxp; state.body = "All";
+  state.model = "All"; state.drive = "All"; state.fuel = "All"; state.q = "";
+  state.sort = "pl"; shown = PAGE; $("#q").value = "";
+  [...$("#tabs").children].forEach(c => c.setAttribute("aria-selected", c.dataset.k === CH.kind));
+  chips(); buildFilters();
+  $("#fprice").value = String(CH.maxp); state.maxp = CH.maxp;
+  if (CH.body){ state.body = CH.body;
+    [...$("#bodychips").children].forEach(c => c.setAttribute("aria-pressed", c.dataset.b === CH.body)); }
+  $("#sort").value = state.sort; syncBadge(); render();
+  cClose();
+  $(".controls").scrollIntoView({ behavior: "smooth", block: "start" });
+  toast(`Showing ${n} vehicles`);
+}
+function cNoMatch(fromResults){
+  cBot(fromResults
+    ? "No problem. Tell me what you're after and I'll go find it \u2014 I can look at the other Gerald stores and at cars coming in."
+    : `Nothing on the lot matches <b>${esc(cSummary())}</b> right now. That happens \u2014 but I can go find one. Inventory turns over weekly, and I can check the other Gerald stores and units already on the way.`);
+  cLead("sourcing");
+}
+function cWhatsNew(){
+  const fresh = [...DATA.new, ...DATA.used].filter(v => v.nw);
+  const drops = [...DATA.new, ...DATA.used].filter(v => v.was).sort((a,b) => (b.was - b.p) - (a.was - a.p));
+  const pick = drops.concat(fresh).slice(0, 3);
+  cBot(drops.length
+    ? `${drops.length} ${drops.length === 1 ? "vehicle has" : "vehicles have"} dropped in price this week${fresh.length ? `, and ${fresh.length} just landed` : ""}.`
+    : `${fresh.length} ${fresh.length === 1 ? "vehicle" : "vehicles"} just landed on the lot.`);
+  const list = cAdd("chits", "");
+  pick.forEach(v => {
+    const b = document.createElement("button");
+    b.type = "button"; b.className = "chit";
+    b.innerHTML = `<span class="cth"><img class="${v.br ? "brd" : ""}" src="${esc(img(v.g[0], 160))}" alt="" loading="lazy"></span>
+      <span class="cinfo"><span class="cnm">${esc(label(v))}</span>
+        <span class="cpr">${money(v.p)}</span>
+        <span class="csub">${v.was ? "was " + money(v.was) + " \u00b7 down " + money(v.was - v.p) : "just arrived"}</span></span>`;
+    b.addEventListener("click", () => { cClose(); open(v); });
+    list.appendChild(b);
+  });
+  cScroll();
+  cOpts([["Help me find a car", cKind], ["Text Stephan", () => cLead("whatsnew", pick)], ["Start over", () => { cBody().innerHTML = ""; cStart(); }, true]]);
+}
+function cJustText(){
+  cBot("Easiest way is straight to his phone \u2014 he answers texts himself.");
+  const row = cAdd("copts", "");
+  row.innerHTML = `<a class="btn btn-a" style="border-radius:999px;padding:9px 15px" href="sms:${PHONE}">Text (708) 963-3553</a>
+                   <a class="btn" style="border-radius:999px;padding:9px 15px;background:var(--surface);border:1px solid var(--rule);color:var(--ink)" href="tel:${PHONE}">Call</a>`;
+  cScroll();
+  cOpts([["Actually, help me find a car", cKind, true]]);
+}
+function cLead(mode, cars){
+  const tagBits = {
+    matches:  "CHAT \u2014 wants these: " + cSummary(),
+    whatsnew: "CHAT \u2014 asked what's new",
+    sourcing: "SOURCING REQUEST \u2014 nothing on the lot matched: " + (CH.kind ? cSummary() : "criteria not given")
+  };
+  let tag = tagBits[mode] || "CHAT";
+  if (cars && cars.length) tag += " | stock " + cars.slice(0, 3).map(v => v.s).join(", ");
+  cBot(mode === "sourcing"
+    ? "Leave your number and what you're hunting for \u2014 Stephan will text you when something fits."
+    : "Leave your number and he'll text you the links.");
+  const f = document.createElement("form");
+  f.className = "leadf cform"; f.setAttribute("name", "inquiry");
+  f.setAttribute("method", "POST"); f.setAttribute("data-netlify", "true");
+  f.setAttribute("data-netlify-honeypot", "bot-field");
+  f.innerHTML = `<input type="hidden" name="form-name" value="inquiry">
+    <input type="hidden" name="vehicle" value="${esc(tag)}">
+    <p class="hp"><label>Leave this empty <input name="bot-field" tabindex="-1" autocomplete="off"></label></p>
+    <input name="name" placeholder="Your name" required autocomplete="name" aria-label="Your name">
+    <input name="phone" type="tel" placeholder="Phone" required autocomplete="tel" aria-label="Phone number">
+    ${mode === "sourcing" ? `<textarea name="message" rows="2" placeholder="What are you looking for?" aria-label="What are you looking for"></textarea>` : ``}
+    <button type="submit">${mode === "sourcing" ? "Have Stephan find it" : "Send to Stephan"}</button>
+    <p class="lmsg" hidden role="status"></p>`;
+  cBody().appendChild(f); cScroll();
+  f.querySelector("input[name=name]").focus({ preventScroll: true });
+}
+function cOpen(auto){
+  $("#cpanel").hidden = false; $("#cbub").hidden = true; $("#cdot").hidden = true;
+  CH.opened = true; CH.isOpen = true;
+  try { sessionStorage.setItem("ssc-chat-seen", "1"); } catch (e) {}
+  if (!CH.seeded){ CH.seeded = true; cStart(); }
+  if (!auto) cBody().querySelector(".copts button")?.focus();
+}
+function cClose(){ $("#cpanel").hidden = true; $("#cbub").hidden = false; CH.isOpen = false; }
+$("#cbub").addEventListener("click", () => cOpen(false));
+$("#cx").addEventListener("click", cClose);
+
+/* nudge only once they are actually shopping: a second vehicle, or a deep scroll */
+let chatNudged = false;
+try { if (sessionStorage.getItem("ssc-chat-seen")) chatNudged = true; } catch (e) {}
+function chatNudge(){
+  if (chatNudged || CH.opened || $("#sheet").classList.contains("on")) return;
+  chatNudged = true; cOpen(true);
+}
+addEventListener("scroll", () => {
+  if (chatNudged || CH.opened) return;
+  const max = document.documentElement.scrollHeight - innerHeight;
+  if (max > 400 && scrollY / max > 0.45) chatNudge();
+}, { passive: true });
 buildFilters();
 $("#stamp").textContent = "Inventory updated " + new Date(document.lastModified).toLocaleDateString("en-US",{month:"long",day:"numeric",year:"numeric"});
 render();
