@@ -107,6 +107,7 @@ input:focus-visible,select:focus-visible,button:focus-visible,a:focus-visible{ou
 .chip{background:var(--surface);border:1px solid var(--rule);border-radius:2px;padding:8px 13px;
   font-family:var(--fl);font-weight:600;font-size:13.5px;letter-spacing:.05em;text-transform:uppercase;color:var(--muted)}
 .chip[aria-pressed="true"]{background:var(--ink);color:var(--paper);border-color:var(--ink)}
+.chip .cn{opacity:.55;margin-left:3px;letter-spacing:.02em}
 .count{font-family:var(--fl);font-weight:600;font-size:13px;letter-spacing:.09em;text-transform:uppercase;color:var(--muted);margin-left:auto}
 .fbtn{background:var(--surface);border:1px solid var(--rule);border-radius:2px;padding:8px 13px;cursor:pointer;
   font-family:var(--fl);font-weight:600;font-size:13.5px;letter-spacing:.04em;color:var(--ink);display:flex;align-items:center;gap:7px}
@@ -510,7 +511,30 @@ let state = { q:"", body:"All", sort:"pl", kind:"new", maxp:0, model:"All", driv
 const FEATS = DATA.feats || [];
 const baseModel = v => (v.md||"").replace(/\s+(Plug-In Hybrid|Hybrid)$/i, "").trim() || (v.md||"");
 const fuelOf = v => /plug-?in/i.test(v.md||"") ? "Plug-in Hybrid" : (v.fu||"");
-const FKEYS = ["maxp","model","drive","fuel"];
+// Every dropdown used to count against the whole tab, so "Hybrid (312)" stayed 312
+// after you picked Telluride. A facet is now counted against every OTHER active
+// filter and never against itself, which is what makes the numbers true and lets a
+// combination that cannot exist disappear instead of returning an empty grid.
+function qOk(v){
+  if (!state.q) return true;
+  const hay = (label(v) + " " + v.tr + " " + v.b + " " + v.ex + " " + v.s).toLowerCase();
+  return state.q.split(/\s+/).every(w => hay.includes(w));
+}
+const PRED = {
+  body:  v => state.body === "All" || v.b === state.body,
+  maxp:  v => !state.maxp || v.p <= state.maxp,
+  model: v => state.model === "All" || baseModel(v) === state.model,
+  trim:  v => state.trim === "All" || (v.tr || "") === state.trim,
+  drive: v => state.drive === "All" || v.dr === state.drive,
+  fuel:  v => state.fuel === "All" || fuelOf(v) === state.fuel,
+  feat:  v => !state.feat.length || state.feat.every(i => (v.f || []).includes(i)),
+  q:     qOk
+};
+const FACETS = Object.keys(PRED);
+function pool(skip){
+  const use = FACETS.filter(k => !(skip || []).includes(k));
+  return V.filter(v => { for (const k of use) if (!PRED[k](v)) return false; return true; });
+}
 function activeCount(){
   return (state.maxp?1:0) + (state.model!=="All"?1:0) + (state.drive!=="All"?1:0)
        + (state.fuel!=="All"?1:0) + (state.trim!=="All"?1:0) + state.feat.length;
@@ -519,37 +543,59 @@ const PAGE = (innerWidth < 700 || innerHeight < 560) ? 24 : 60;
 let shown = PAGE;
 
 function chips(){
-  const bodies = ["All", ...[...new Set(V.map(v=>v.b))].sort()];
-  $("#bodychips").innerHTML = bodies.map(b =>
-    `<button class="chip" data-b="${esc(b)}" aria-pressed="${b===state.body}">${esc(b)}</button>`).join("");
+  const bp = pool(["body"]);
+  const counts = new Map();
+  for (const v of bp) counts.set(v.b, (counts.get(v.b) || 0) + 1);
+  const rows = [...counts.entries()].sort((a,b) => a[0].localeCompare(b[0]));
+  // A body style you have already picked stays on screen at (0) rather than vanishing,
+  // so you can see what emptied the grid and click back out of it.
+  if (state.body !== "All" && !counts.has(state.body)) rows.push([state.body, 0]);
+  $("#bodychips").innerHTML =
+    `<button class="chip" data-b="All" aria-pressed="${state.body === "All"}">All <span class="cn">${bp.length}</span></button>`
+    + rows.map(([b,n]) =>
+        `<button class="chip" data-b="${esc(b)}" aria-pressed="${b===state.body}">${esc(b)} <span class="cn">${n}</span></button>`).join("");
 }
 function opts(sel, list, cur, allLabel){
+  const rows = list.slice();
+  if (cur !== "All" && !rows.some(x => x[0] === cur)) rows.push([cur, 0]);
+  rows.sort((a,b) => String(a[0]).localeCompare(String(b[0]), undefined, {numeric:true}));
   sel.innerHTML = [`<option value="All">${allLabel}</option>`].concat(
-    list.map(([val,n]) => `<option value="${esc(val)}">${esc(val)} (${n})</option>`)).join("");
-  sel.value = list.some(x=>x[0]===cur) ? cur : "All";
+    rows.map(([val,n]) => `<option value="${esc(val)}">${esc(val)} (${n})</option>`)).join("");
+  sel.value = cur;
 }
-function tally(fn){
+function tally(fn, rows){
   const m = new Map();
-  for (const v of V){ const k = fn(v); if(!k) continue; m.set(k, (m.get(k)||0)+1); }
+  for (const v of rows){ const k = fn(v); if(!k) continue; m.set(k, (m.get(k)||0)+1); }
   return [...m.entries()].sort((a,b)=>a[0].localeCompare(b[0],undefined,{numeric:true}));
 }
 function buildFilters(){
-  const ps = V.map(v=>v.p).filter(Boolean);
-  const lo = Math.min(...ps), hi = Math.max(...ps), STEP = 5000;
-  const steps = [];
-  for (let c = Math.ceil((lo+1)/STEP)*STEP; c < hi + STEP; c += STEP) steps.push(c);
+  // Price caps are counted against everything except the cap itself, and a cap that
+  // would return nothing is not offered at all.
+  const pp = pool(["maxp"]), STEP = 5000;
+  const ps = pp.map(v=>v.p).filter(Boolean);
+  let steps = [];
+  if (ps.length){
+    const lo = Math.min(...ps), hi = Math.max(...ps);
+    for (let c = Math.ceil((lo+1)/STEP)*STEP; c < hi + STEP; c += STEP) steps.push(c);
+  }
+  steps = steps.map(c => [c, pp.filter(v => v.p <= c).length]).filter(([, n]) => n > 0);
+  if (state.maxp && !steps.some(([c]) => c === state.maxp)){
+    steps.push([state.maxp, pp.filter(v => v.p <= state.maxp).length]);
+    steps.sort((a,b) => a[0] - b[0]);
+  }
   $("#fprice").innerHTML = `<option value="0">Any price</option>` +
-    steps.map(c=>`<option value="${c}">Under $${c.toLocaleString("en-US")}</option>`).join("");
-  $("#fprice").value = steps.includes(state.maxp) ? String(state.maxp) : "0";
-  state.maxp = +$("#fprice").value;
-  opts($("#fmodel"), tally(baseModel), state.model, "All models");
+    steps.map(([c,n]) => `<option value="${c}">Under $${c.toLocaleString("en-US")} (${n})</option>`).join("");
+  $("#fprice").value = String(state.maxp || 0);
+  // Trim lives inside a model, so a trim left over from another model must not be
+  // allowed to hide every model in the list.
+  opts($("#fmodel"), tally(baseModel, pool(["model","trim"])), state.model, "All models");
+  opts($("#fdrive"), tally(v => v.dr, pool(["drive"])),        state.drive, "Any drivetrain");
+  opts($("#ffuel"),  tally(fuelOf,    pool(["fuel"])),         state.fuel,  "Any fuel");
   buildTrim();
   buildFeat();
-  opts($("#fdrive"), tally(v=>v.dr),    state.drive, "Any drivetrain");
-  opts($("#ffuel"),  tally(fuelOf),     state.fuel,  "Any fuel");
-  state.model = $("#fmodel").value; state.drive = $("#fdrive").value; state.fuel = $("#ffuel").value;
   syncBadge();
 }
+function refresh(){ chips(); buildFilters(); render(); }
 // Trim only makes sense inside a model: 31 trim names exist but "EX" belongs to nine
 // different Kias, so a standalone list would mix Carnival EXs with K4 EXs.
 function buildTrim(){
@@ -557,22 +603,25 @@ function buildTrim(){
   if (state.model === "All"){
     wrap.classList.add("hide"); sel.innerHTML = ""; state.trim = "All"; return;
   }
-  const rows = tally(v => baseModel(v) === state.model ? (v.tr || "") : "");
-  wrap.classList.toggle("hide", rows.length < 2);
-  if (rows.length < 2){ sel.innerHTML = ""; state.trim = "All"; return; }
+  const rows = tally(v => baseModel(v) === state.model ? (v.tr || "") : "", pool(["trim"]));
+  const many = rows.length > 1 || (state.trim !== "All" && rows.length);
+  wrap.classList.toggle("hide", !many);
+  if (!many){ sel.innerHTML = ""; state.trim = "All"; return; }
   opts(sel, rows, state.trim, "All trims");
-  state.trim = sel.value;
 }
 // Offer only features that actually split the inventory: one on every car filters nothing.
 function buildFeat(){
+  // Counted against the cars actually on screen, so the number on a chip is how many
+  // you would be left with, not how many exist somewhere in the tab.
+  const base = pool([]);
   const counts = new Map();
-  V.forEach(v => (v.f || []).forEach(i => counts.set(i, (counts.get(i) || 0) + 1)));
-  const n = V.length || 1;
-  const picks = [...counts.entries()]
-    .filter(([, c]) => c / n >= 0.08 && c / n <= 0.85)
-    .sort((a, b) => b[1] - a[1]).slice(0, 8);
+  base.forEach(v => (v.f || []).forEach(i => counts.set(i, (counts.get(i) || 0) + 1)));
+  const n = base.length || 1;
+  let picks = [...counts.entries()].filter(([, c]) => c > 0 && c < base.length);
+  const useful = picks.filter(([, c]) => c / n >= 0.08 && c / n <= 0.85);
+  picks = (useful.length ? useful : picks).sort((a, b) => b[1] - a[1]).slice(0, 8);
   const extra = state.feat.filter(i => !picks.some(p => p[0] === i))
-    .map(i => [i, V.filter(v => (v.f || []).includes(i)).length]);
+    .map(i => [i, counts.get(i) || 0]);
   const shown = picks.concat(extra);
   $("#ffeat").innerHTML = shown.map(([i, c]) =>
     `<button type="button" data-i="${i}" aria-pressed="${state.feat.includes(i)}">${esc(FEATS[i])} (${c})</button>`).join("");
@@ -586,8 +635,6 @@ function syncBadge(){
 function clearFilters(){
   state.maxp = 0; state.model = "All"; state.drive = "All"; state.fuel = "All";
   state.trim = "All"; state.feat = [];
-  $("#fprice").value = "0"; $("#fmodel").value = "All"; $("#fdrive").value = "All"; $("#ffuel").value = "All";
-  buildTrim(); buildFeat(); syncBadge();
 }
 $("#cnew").textContent = DATA.new.length;
 $("#cused").textContent = DATA.used.length;
@@ -598,56 +645,38 @@ $("#tabs").addEventListener("click", e => {
   state.sort = state.kind === "new" ? "pl" : "ph";
   $("#sort").value = state.sort;
   [...$("#tabs").children].forEach(c => c.setAttribute("aria-selected", c===b));
-  clearFilters(); chips(); buildFilters(); render();
+  clearFilters(); refresh();
 });
-chips();
 $("#sort").value = state.sort;
 $("#bodychips").addEventListener("click", e => {
   const b = e.target.closest(".chip"); if (!b) return;
-  state.body = b.dataset.b; shown = PAGE;
-  [...$("#bodychips").children].forEach(c => c.setAttribute("aria-pressed", c===b));
-  render();
+  state.body = b.dataset.b; shown = PAGE; refresh();
 });
-$("#q").addEventListener("input", e => { state.q = e.target.value.toLowerCase().trim(); shown = PAGE; render(); });
+$("#q").addEventListener("input", e => { state.q = e.target.value.toLowerCase().trim(); shown = PAGE; refresh(); });
 $("#fbtn").addEventListener("click", () => {
   const open = $("#fpanel").classList.toggle("on");
   $("#fbtn").setAttribute("aria-expanded", open);
 });
-$("#fprice").addEventListener("change", e => { state.maxp = +e.target.value; shown = PAGE; syncBadge(); render(); });
+$("#fprice").addEventListener("change", e => { state.maxp = +e.target.value; shown = PAGE; refresh(); });
 $("#fmodel").addEventListener("change", e => {
-  state.model = e.target.value; state.trim = "All"; shown = PAGE; buildTrim(); syncBadge(); render();
+  state.model = e.target.value; state.trim = "All"; shown = PAGE; refresh();
 });
-$("#ftrim").addEventListener("change", e => { state.trim = e.target.value; shown = PAGE; syncBadge(); render(); });
+$("#ftrim").addEventListener("change", e => { state.trim = e.target.value; shown = PAGE; refresh(); });
 $("#ffeat").addEventListener("click", e => {
   const b = e.target.closest("button"); if (!b) return;
   const i = +b.dataset.i, at = state.feat.indexOf(i);
   if (at < 0) state.feat.push(i); else state.feat.splice(at, 1);
-  b.setAttribute("aria-pressed", at < 0);
-  shown = PAGE; syncBadge(); render();
+  shown = PAGE; refresh();
 });
-$("#fdrive").addEventListener("change", e => { state.drive = e.target.value; shown = PAGE; syncBadge(); render(); });
-$("#ffuel").addEventListener("change",  e => { state.fuel  = e.target.value; shown = PAGE; syncBadge(); render(); });
-$("#fclear").addEventListener("click", () => { clearFilters(); shown = PAGE; render(); });
-$("#emptyclear").addEventListener("click", () => { clearFilters(); shown = PAGE; render(); });
+$("#fdrive").addEventListener("change", e => { state.drive = e.target.value; shown = PAGE; refresh(); });
+$("#ffuel").addEventListener("change",  e => { state.fuel  = e.target.value; shown = PAGE; refresh(); });
+$("#fclear").addEventListener("click", () => { clearFilters(); shown = PAGE; refresh(); });
+$("#emptyclear").addEventListener("click", () => { clearFilters(); shown = PAGE; refresh(); });
 $("#sort").addEventListener("change", e => { state.sort = e.target.value; shown = PAGE; render(); });
 
 function visible(){
-  let r = V.filter(v => (state.body==="All" || v.b===state.body)
-    && (!state.maxp || v.p <= state.maxp)
-    && (state.model==="All" || baseModel(v)===state.model)
-    && (state.drive==="All" || v.dr===state.drive)
-    && (state.fuel==="All"  || fuelOf(v)===state.fuel)
-    && (state.trim==="All"  || (v.tr || "")===state.trim)
-    && (!state.feat.length  || state.feat.every(i => (v.f || []).includes(i))));
-  if (state.q){
-    const w = state.q.split(/\s+/);
-    r = r.filter(v => {
-      const hay = (label(v)+" "+v.tr+" "+v.b+" "+v.ex+" "+v.s).toLowerCase();
-      return w.every(t => hay.includes(t));
-    });
-  }
   const s = { ph:(a,b)=>b.p-a.p, pl:(a,b)=>a.p-b.p, mi:(a,b)=>a.mi-b.mi, yr:(a,b)=>b.y-a.y }[state.sort];
-  return r.sort(s);
+  return pool([]).sort(s);
 }
 
 const IMGP="https://cloudflareimages.dealereprocess.com/resrc/images/c_limit,fl_lossy,w_",IMGQ="/v1/";
@@ -878,7 +907,7 @@ function goHome(){
   $("#q").value = ""; $("#sort").value = state.sort;
   [...$("#tabs").children].forEach(c => c.setAttribute("aria-selected", c.dataset.k === "new"));
   $("#fpanel").classList.remove("on"); $("#fbtn").setAttribute("aria-expanded", "false");
-  chips(); buildFilters(); render();
+  refresh();
   history.replaceState({}, "", location.pathname);
   scrollTo({ top: 0, behavior: "smooth" });
 }
@@ -1155,12 +1184,8 @@ function cApply(n){
   cSave();
   state.sort = "pl"; shown = PAGE; $("#q").value = "";
   [...$("#tabs").children].forEach(c => c.setAttribute("aria-selected", c.dataset.k === CH.kind));
-  chips(); buildFilters();
-  $("#fprice").value = String(CH.maxp); state.maxp = CH.maxp;
-  if (CH.body){ state.body = CH.body;
-    [...$("#bodychips").children].forEach(c => c.setAttribute("aria-pressed", c.dataset.b === CH.body)); }
-  buildFeat();
-  $("#sort").value = state.sort; syncBadge(); render();
+  if (CH.body) state.body = CH.body;
+  $("#sort").value = state.sort; refresh();
   cClose();
   $(".controls").scrollIntoView({ behavior: "smooth", block: "start" });
   toast(`Showing ${n} vehicles`);
@@ -1261,14 +1286,14 @@ addEventListener("scroll", () => {
   const max = document.documentElement.scrollHeight - innerHeight;
   if (max > 400 && scrollY / max > 0.45) chatNudge();
 }, { passive: true });
-buildFilters();
+chips(); buildFilters();
 $("#stamp").textContent = "Inventory updated " + new Date(document.lastModified).toLocaleDateString("en-US",{month:"long",day:"numeric",year:"numeric"});
 render();
 const DL = (new URLSearchParams(location.search).get("v") || decodeURIComponent(location.hash.slice(1)) || "").trim();
 if (DL){ const id=DL;
   const v = DATA.new.find(x=>x.s===id) || DATA.used.find(x=>x.s===id);
   if (v){ if(v.k==="used"){ state.kind="used"; V=DATA.used; state.sort="ph"; $("#sort").value="ph";
-    [...$("#tabs").children].forEach(c=>c.setAttribute("aria-selected", c.dataset.k==="used")); chips(); render(); }
+    [...$("#tabs").children].forEach(c=>c.setAttribute("aria-selected", c.dataset.k==="used")); refresh(); }
     open(v); } }
 </script>
 </body>
