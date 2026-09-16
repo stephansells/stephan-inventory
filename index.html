@@ -138,7 +138,12 @@ input:focus-visible,select:focus-visible,button:focus-visible,a:focus-visible{ou
 .fclear{background:none;border:1px solid var(--rule);border-radius:2px;padding:9px 13px;cursor:pointer;
   font-family:var(--fl);font-weight:600;font-size:13px;letter-spacing:.04em;color:var(--muted)}
 .fclear:hover{color:var(--ink);border-color:var(--ink)}
-@media (max-width:640px){.fpin{grid-template-columns:1fr 1fr;padding:12px 14px}.fclear{grid-column:1/-1}}
+.frow{grid-column:1/-1;display:flex;gap:9px;align-items:center;flex-wrap:wrap}
+.fdone{background:var(--accent);border:1px solid var(--accent);color:var(--on-accent);border-radius:2px;
+  padding:9px 16px;cursor:pointer;font-family:var(--fl);font-weight:700;font-size:13px;letter-spacing:.04em}
+.fdone:hover{filter:brightness(1.08)}
+@media (max-width:640px){.fpin{grid-template-columns:1fr 1fr;padding:12px 14px}
+  .frow>button{flex:1 1 0;min-width:0;text-align:center}}
 
 .tabsin{max-width:1180px;margin:0 auto;padding:11px 18px 0}
 .tabs{display:inline-flex;gap:4px;background:var(--surface-2);border:1px solid var(--rule);border-radius:3px;padding:3px}
@@ -423,7 +428,10 @@ footer{border-top:1px solid var(--rule);background:var(--surface);margin-top:10p
       <div class="fld"><label for="fdrive">Drivetrain</label><select id="fdrive"></select></div>
       <div class="fld"><label for="ffuel">Fuel</label><select id="ffuel"></select></div>
       <div class="ffeatwrap" id="ffeatwrap"><label>Must have</label><div class="ffeat" id="ffeat"></div></div>
-      <button class="fclear" id="fclear">Clear all filters</button>
+      <div class="frow">
+        <button class="fdone" id="fdone">Show vehicles</button>
+        <button class="fclear" id="fclear">Clear all filters</button>
+      </div>
     </div>
   </div>
 </div>
@@ -657,6 +665,17 @@ $("#fbtn").addEventListener("click", () => {
   const open = $("#fpanel").classList.toggle("on");
   $("#fbtn").setAttribute("aria-expanded", open);
 });
+// On a phone the panel is most of the screen, so whoever reached this button has
+// scrolled past the controls bar; put it back in view rather than dropping them
+// into the middle of the grid.
+function closeFilters(){
+  $("#fpanel").classList.remove("on");
+  $("#fbtn").setAttribute("aria-expanded", "false");
+  $("#fbtn").focus({ preventScroll: true });
+  const bar = $(".controls");
+  if (bar && bar.getBoundingClientRect().top < 0) bar.scrollIntoView({ behavior: "smooth", block: "start" });
+}
+$("#fdone").addEventListener("click", closeFilters);
 $("#fprice").addEventListener("change", e => { state.maxp = +e.target.value; shown = PAGE; refresh(); });
 $("#fmodel").addEventListener("change", e => {
   state.model = e.target.value; state.trim = "All"; shown = PAGE; refresh();
@@ -684,6 +703,10 @@ const img=(t,w)=>IMGP+w+IMGQ+t;
 function render(){
   const r = visible();
   $("#count").textContent = r.length + (r.length===1?" vehicle":" vehicles");
+  // The panel filters live, so this button is a way OUT of it, not a submit. Labelling it
+  // with the live count means the buyer reads the result before deciding to close.
+  $("#fdone").textContent = r.length === 0 ? "Close"
+    : r.length === 1 ? "Show 1 vehicle" : "Show " + r.length + " vehicles";
   $("#empty").hidden = r.length > 0;
   const nf = activeCount();
   $("#emptymsg").textContent = nf
@@ -855,18 +878,24 @@ function open(v){
   $("#sheet").scrollTop = 0;
   history.pushState({v:v.s}, "", "#" + v.s);
 }
-function close(){
+function close(fromHistory){
   $("#sheet").classList.remove("on");
   document.body.style.overflow = "";
   $("#cbub").hidden = CH.isOpen;
   $("#cpanel").hidden = !CH.isOpen;
   if (CH.detailViews >= 2) setTimeout(chatNudge, 400);
-  history.pushState({}, "", location.pathname);
+  if (!fromHistory) history.pushState({}, "", location.pathname);
 }
-$("#back").addEventListener("click", close);
-addEventListener("popstate", () => { if (!location.hash) { $("#sheet").classList.remove("on"); document.body.style.overflow=""; } });
+// A click handler is passed the event, which is truthy, so it must not reach fromHistory.
+$("#back").addEventListener("click", () => close());
+addEventListener("popstate", () => {
+  if (!location.hash && $("#sheet").classList.contains("on")) close(true);
+});
 addEventListener("keydown", e => {
   if (e.key === "Escape" && !$("#cpanel").hidden){ cClose(); return; }
+  if (e.key === "Escape" && $("#fpanel").classList.contains("on") && !$("#sheet").classList.contains("on")){
+    closeFilters(); return;
+  }
   if (!$("#sheet").classList.contains("on")) return;
   if (e.key === "Escape") close();
   else if (e.key === "ArrowRight" && cur && cur.g.length > 1) setPhoto(gi+1);
@@ -1284,7 +1313,7 @@ function chatNudge(){
 addEventListener("scroll", () => {
   if (chatNudged || CH.opened) return;
   const max = document.documentElement.scrollHeight - innerHeight;
-  if (max > 400 && scrollY / max > 0.45) chatNudge();
+  if (max > 400 && (scrollY / max > 0.45 || scrollY > innerHeight * 2)) chatNudge();
 }, { passive: true });
 chips(); buildFilters();
 $("#stamp").textContent = "Inventory updated " + new Date(document.lastModified).toLocaleDateString("en-US",{month:"long",day:"numeric",year:"numeric"});
