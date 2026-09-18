@@ -166,6 +166,16 @@ input:focus-visible,select:focus-visible,button:focus-visible,a:focus-visible{ou
 /* grid */
 main{max-width:1180px;margin:0 auto;padding:22px 18px 60px;min-height:72vh}
 .grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(258px,1fr));gap:18px}
+.loading{display:flex;flex-direction:column;align-items:center;gap:14px;padding:70px 20px;color:var(--muted);
+  font-family:var(--fl);font-weight:600;font-size:15px}
+.spin{width:30px;height:30px;border:3px solid var(--rule);border-top-color:var(--accent);border-radius:50%;
+  animation:spin .8s linear infinite}
+@keyframes spin{to{transform:rotate(360deg)}}
+@media (prefers-reduced-motion:reduce){.spin{animation-duration:2.4s}}
+.dataerr{padding:54px 20px;text-align:center}
+.dataerr h2{font-family:var(--fd);font-weight:700;font-size:28px;text-transform:uppercase;margin:0 0 8px}
+.dataerr p{color:var(--muted);max-width:46ch;margin:0 auto 20px}
+.derow{display:flex;gap:10px;justify-content:center;flex-wrap:wrap}
 .card{background:var(--surface);border:1px solid var(--rule);border-radius:2px;overflow:hidden;
   display:flex;flex-direction:column;text-align:left;padding:0;box-shadow:var(--shadow)}
 .card:hover{border-color:var(--muted)}
@@ -414,7 +424,7 @@ footer{border-top:1px solid var(--rule);background:var(--surface);margin-top:10p
   </div>
 </div>
 
-<div class="controls">
+<div class="controls" hidden>
   <div class="tabsin"><div class="tabs" id="tabs" role="tablist">
     <button class="tab" data-k="new"  role="tab" aria-selected="true">New Kias <span id="cnew"></span></button>
     <button class="tab" data-k="used" role="tab" aria-selected="false">Pre-Owned <span id="cused"></span></button>
@@ -447,7 +457,18 @@ footer{border-top:1px solid var(--rule);background:var(--surface);margin-top:10p
   </div>
 </div>
 
-<main id="main"><h2 class="sr">Vehicles</h2><div class="grid" id="grid"></div><div class="more" id="more" hidden><button id="moreBtn"></button></div><div class="empty" id="empty" hidden><p id="emptymsg">No vehicles match that search.</p><button class="fclear" id="emptyclear" style="margin-top:14px" hidden>Clear all filters</button></div></main>
+<main id="main"><h2 class="sr">Vehicles</h2>
+<div class="loading" id="loading"><div class="spin" aria-hidden="true"></div><p>Loading today's inventory…</p></div>
+<div class="dataerr" id="dataerr" hidden>
+  <h2>The inventory didn't load</h2>
+  <p>It is usually back within a minute. Call or text me and I will look it up for you right now.</p>
+  <div class="derow">
+    <a class="btn btn-a" href="tel:+17089633553">Call (708) 963-3553</a>
+    <a class="btn btn-b" href="sms:+17089633553">Text me</a>
+    <button class="fclear" id="retry">Try again</button>
+  </div>
+</div>
+<div class="grid" id="grid"></div><div class="more" id="more" hidden><button id="moreBtn"></button></div><div class="empty" id="empty" hidden><p id="emptymsg">No vehicles match that search.</p><button class="fclear" id="emptyclear" style="margin-top:14px" hidden>Clear all filters</button></div></main>
 
 <section class="lead" id="lead">
   <div class="leadin">
@@ -517,8 +538,12 @@ footer{border-top:1px solid var(--rule);background:var(--surface);margin-top:10p
 </div>
 
 <script>
-const DATA = __DATA__;
-let V = DATA.new;
+// The cars used to live inside this file, which meant every daily refresh was a full site
+// deploy. They now live in their own file, fetched at load, so publishing new inventory costs
+// nothing and this page only ships when the DESIGN changes.
+const DATA_URL = "https://stephansells.github.io/inventory-data/inventory.json";
+let DATA = null;
+let V = null;
 const PHONE = "+17089633553";
 const $ = s => document.querySelector(s);
 const money = n => "$" + n.toLocaleString("en-US");
@@ -528,7 +553,7 @@ const label = v => v.y + " " + v.mk + " " + v.md;
 
 let state = { q:"", body:"All", sort:"pl", kind:"new", maxp:0, model:"All", drive:"All", fuel:"All",
               trim:"All", feat:[] };
-const FEATS = DATA.feats || [];
+let FEATS = [];
 const baseModel = v => (v.md||"").replace(/\s+(Plug-In Hybrid|Hybrid)$/i, "").trim() || (v.md||"");
 const fuelOf = v => /plug-?in/i.test(v.md||"") ? "Plug-in Hybrid" : (v.fu||"");
 // Every dropdown used to count against the whole tab, so "Hybrid (312)" stayed 312
@@ -638,7 +663,7 @@ function sayCount(){
       + (bits.length ? ", " + bits.join(", ") : "")
       + ", " + (state.kind === "new" ? "new Kias" : "pre-owned"), 400);
 }
-function refresh(){ chips(); buildFilters(); render(); sayCount(); }
+function refresh(){ if (!DATA) return; chips(); buildFilters(); render(); sayCount(); }
 // Only subtract chrome that is actually pinned: the controls bar is sticky on desktop and
 // static on phones, so measuring it beats assuming it.
 function stickyH(el){
@@ -747,8 +772,7 @@ function clearFilters(){
   state.maxp = 0; state.model = "All"; state.drive = "All"; state.fuel = "All";
   state.trim = "All"; state.feat = [];
 }
-$("#cnew").textContent = DATA.new.length;
-$("#cused").textContent = DATA.used.length;
+
 $("#tabs").addEventListener("click", e => {
   const b = e.target.closest(".tab"); if (!b) return;
   state.kind = b.dataset.k; state.body = "All"; shown = PAGE;
@@ -797,6 +821,7 @@ $("#emptyclear").addEventListener("click", () => { clearFilters(); applyChange()
 $("#sort").addEventListener("change", e => { state.sort = e.target.value; shown = PAGE; render(); toResults(); });
 
 function visible(){
+  if (!V) return [];
   const s = { ph:(a,b)=>b.p-a.p, pl:(a,b)=>a.p-b.p, mi:(a,b)=>a.mi-b.mi, yr:(a,b)=>b.y-a.y }[state.sort];
   return pool([]).sort(s);
 }
@@ -812,6 +837,7 @@ const CARD_SIZES = "(min-width:1180px) 272px, (min-width:880px) 30vw, (min-width
 const GAL_W = [600, 900, 1200];
 const GAL_SIZES = "(min-width:861px) 660px, 100vw";
 function render(){
+  if (!DATA) return;
   const r = visible();
   $("#count").textContent = r.length + (r.length===1?" vehicle":" vehicles");
   // The panel filters live, so this button is a way OUT of it, not a submit. Labelling it
@@ -1491,16 +1517,52 @@ addEventListener("scroll", () => {
   const max = document.documentElement.scrollHeight - innerHeight;
   if (max > 400 && (scrollY / max > 0.45 || scrollY > innerHeight * 2)) chatNudge();
 }, { passive: true });
-chips(); buildFilters();
-$("#stamp").textContent = "Inventory updated " + new Date(document.lastModified).toLocaleDateString("en-US",{month:"long",day:"numeric",year:"numeric"});
-render();
-if (hasFilterParams()) applySearchParams();
-const DL = (new URLSearchParams(location.search).get("v") || decodeURIComponent(location.hash.slice(1)) || "").trim();
-if (DL){ const id=DL;
-  const v = DATA.new.find(x=>x.s===id) || DATA.used.find(x=>x.s===id);
-  if (v){ if(v.k==="used"){ state.kind="used"; V=DATA.used; state.sort="ph"; $("#sort").value="ph";
-    [...$("#tabs").children].forEach(c=>c.setAttribute("aria-selected", c.dataset.k==="used")); refresh(); }
-    open(v); } }
+function start(data){
+  DATA = data;
+  FEATS = DATA.feats || [];
+  V = state.kind === "used" ? DATA.used : DATA.new;
+  $("#cnew").textContent = DATA.new.length;
+  $("#cused").textContent = DATA.used.length;
+  $("#loading").hidden = true;
+  $("#dataerr").hidden = true;
+  $(".controls").hidden = false;
+  chips(); buildFilters();
+  const when = DATA.updated ? new Date(DATA.updated + "T12:00:00") : new Date(document.lastModified);
+  $("#stamp").textContent = "Inventory updated " +
+    when.toLocaleDateString("en-US", { month: "long", day: "numeric", year: "numeric" });
+  render();
+  if (hasFilterParams()) applySearchParams();
+  const DL = (new URLSearchParams(location.search).get("v") || decodeURIComponent(location.hash.slice(1)) || "").trim();
+  if (DL){
+    const v = DATA.new.find(x => x.s === DL) || DATA.used.find(x => x.s === DL);
+    if (v){
+      if (v.k === "used"){ state.kind = "used"; V = DATA.used; state.sort = "ph"; $("#sort").value = "ph";
+        [...$("#tabs").children].forEach(c => c.setAttribute("aria-selected", c.dataset.k === "used")); refresh(); }
+      open(v);
+    }
+  }
+}
+// A buyer arriving from a Marketplace listing must never see an empty page. If the inventory
+// cannot be reached we say so plainly and keep Call and Text working, because the phone number
+// is the point of the site and it does not depend on the data loading at all.
+function dataFailed(){
+  $("#loading").hidden = true;
+  $("#dataerr").hidden = false;
+  $("#say").textContent = "Inventory could not be loaded. Call or text Stephan at 708 963 3553.";
+}
+function loadData(){
+  $("#dataerr").hidden = true;
+  $("#loading").hidden = false;
+  fetch(DATA_URL, { cache: "default" })
+    .then(r => { if (!r.ok) throw new Error("HTTP " + r.status); return r.json(); })
+    .then(d => {
+      if (!d || !Array.isArray(d.new) || !Array.isArray(d.used)) throw new Error("bad payload");
+      start(d);
+    })
+    .catch(() => dataFailed());
+}
+$("#retry").addEventListener("click", loadData);
+loadData();
 </script>
 </body>
 </html>

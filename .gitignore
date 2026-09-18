@@ -1,0 +1,19 @@
+# Claude's working files. Screenshots, test output and scratch copies of the
+# inventory. None of it belongs on the website, and it was quietly shipping
+# with every deploy.
+Claude outputs/
+
+# Duplicate downloads. The browser appends -1, -2 and so on when a file of the
+# same name is already in the folder, and those copies would go live as real
+# pages at stephansellscars.com/index-1.html.
+*-[0-9].html
+*-[0-9][0-9].html
+
+# The inventory lives in the inventory-data repo now and is served from GitHub
+# Pages. A copy here would be stale the day after it landed.
+inventory.json
+
+# Windows and macOS clutter
+Thumbs.db
+desktop.ini
+.DS_Store
