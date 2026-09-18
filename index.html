@@ -103,6 +103,14 @@ header.top{position:sticky;top:0;z-index:40;background:var(--bar);color:var(--ba
   background:var(--surface);color:var(--ink);font-family:var(--fb);font-size:15px}
 select{width:auto;padding-right:30px}
 input:focus-visible,select:focus-visible,button:focus-visible,a:focus-visible{outline:2px solid var(--accent);outline-offset:2px}
+.sr{position:absolute;width:1px;height:1px;padding:0;margin:-1px;overflow:hidden;
+  clip:rect(0 0 0 0);clip-path:inset(50%);white-space:nowrap;border:0}
+/* The skip link is the first thing a keyboard reaches. It was taking 20 presses of Tab to
+   get past the header and filters to the first car. */
+.skip{position:absolute;left:12px;top:-60px;z-index:100;background:var(--accent);color:#fff;
+  padding:10px 16px;border-radius:2px;font-family:var(--fl);font-weight:700;font-size:14px;
+  text-decoration:none;transition:top .15s ease}
+.skip:focus{top:12px}
 .chips{display:flex;gap:6px;flex-wrap:wrap}
 .chip{background:var(--surface);border:1px solid var(--rule);border-radius:2px;padding:8px 13px;
   font-family:var(--fl);font-weight:600;font-size:13.5px;letter-spacing:.05em;text-transform:uppercase;color:var(--muted)}
@@ -131,7 +139,7 @@ input:focus-visible,select:focus-visible,button:focus-visible,a:focus-visible{ou
 .ffeat button:hover{border-color:var(--accent);color:var(--accent)}
 .ffeat button[aria-pressed="true"]:hover{color:var(--on-accent)}
 .featwrap{display:flex;flex-direction:column;gap:9px}
-.featwrap h3{font-family:var(--fd);font-weight:700;font-size:20px;text-transform:uppercase;margin:0}
+.featwrap h2{font-family:var(--fd);font-weight:700;font-size:20px;text-transform:uppercase;margin:0}
 .featrow{display:flex;gap:7px;flex-wrap:wrap}
 .feat{background:var(--surface-2);border:1px solid var(--rule-soft);border-radius:999px;
   padding:6px 12px;font-family:var(--fl);font-weight:600;font-size:13px;color:var(--ink)}
@@ -156,7 +164,7 @@ input:focus-visible,select:focus-visible,button:focus-visible,a:focus-visible{ou
 .more button:hover{border-color:var(--muted)}
 @media (max-width:520px){.tabsin{padding:9px 14px 0}.tab{padding:8px 13px;font-size:13px}}
 /* grid */
-main{max-width:1180px;margin:0 auto;padding:22px 18px 60px}
+main{max-width:1180px;margin:0 auto;padding:22px 18px 60px;min-height:72vh}
 .grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(258px,1fr));gap:18px}
 .card{background:var(--surface);border:1px solid var(--rule);border-radius:2px;overflow:hidden;
   display:flex;flex-direction:column;text-align:left;padding:0;box-shadow:var(--shadow)}
@@ -190,7 +198,7 @@ main{max-width:1180px;margin:0 auto;padding:22px 18px 60px}
 .leadin{max-width:1180px;margin:0 auto;padding:40px 18px 46px;display:grid;
   grid-template-columns:minmax(0,1fr) minmax(0,1.15fr);gap:36px;align-items:start}
 @media (max-width:820px){.leadin{grid-template-columns:1fr;gap:22px;padding:32px 14px 38px}}
-.lead h3{font-family:var(--fd);font-weight:700;font-size:34px;text-transform:uppercase;margin:0 0 9px;line-height:1.05}
+.lead h2{font-family:var(--fd);font-weight:700;font-size:34px;text-transform:uppercase;margin:0 0 9px;line-height:1.05}
 .lead p.intro{color:var(--muted);font-size:16px;max-width:38ch;margin:0}
 .lead form{display:flex;flex-direction:column;gap:10px}
 .lrow{display:grid;grid-template-columns:1fr 1fr;gap:10px}
@@ -212,7 +220,7 @@ main{max-width:1180px;margin:0 auto;padding:22px 18px 60px}
 .lmsg{font-family:var(--fl);font-weight:600;font-size:14.5px;margin:2px 0 0}
 .lmsg.ok{color:var(--good)}.lmsg.bad{color:var(--accent)}
 .dcontact{border-top:1px solid var(--rule);padding-top:20px;margin-top:4px}
-.dcontact h3{font-family:var(--fd);font-weight:700;font-size:23px;text-transform:uppercase;margin:0 0 4px}
+.dcontact h2{font-family:var(--fd);font-weight:700;font-size:23px;text-transform:uppercase;margin:0 0 4px}
 .dcontact p.intro{color:var(--muted);font-size:14.5px;margin:0 0 13px}
 .dcontact form{display:flex;flex-direction:column;gap:9px}
 .dcontact input,.dcontact textarea{font-family:var(--fb);font-size:15.5px;padding:11px 12px;
@@ -358,7 +366,7 @@ main{max-width:1180px;margin:0 auto;padding:22px 18px 60px}
 .specs .row:last-child{border-bottom:none}
 .specs dt{font-family:var(--fl);font-weight:600;letter-spacing:.07em;text-transform:uppercase;font-size:12px;color:var(--muted)}
 .specs dd{margin:0;font-weight:500;text-align:right}
-.desc h3,.specs h3{font-family:var(--fl);font-weight:600;font-size:12px;letter-spacing:.11em;text-transform:uppercase;color:var(--muted);margin:0 0 8px}
+.desc h2,.specs h2{font-family:var(--fl);font-weight:600;font-size:12px;letter-spacing:.11em;text-transform:uppercase;color:var(--muted);margin:0 0 8px}
 .desc p{margin:0;font-size:15.3px;line-height:1.62}
 .stickybuy{position:sticky;bottom:0;background:var(--paper);border-top:1px solid var(--rule);
   padding:11px 0 calc(11px + env(safe-area-inset-bottom,0px));display:none}
@@ -387,6 +395,7 @@ footer{border-top:1px solid var(--rule);background:var(--surface);margin-top:10p
 </head>
 <body>
 
+<a class="skip" href="#main">Skip to vehicles</a>
 <header class="top">
   <div class="topin">
     <button class="brand" id="home" aria-label="Back to all inventory"><b>Stephan Sells Cars</b><span>Matteson, Illinois</span></button>
@@ -438,12 +447,12 @@ footer{border-top:1px solid var(--rule);background:var(--surface);margin-top:10p
   </div>
 </div>
 
-<main><div class="grid" id="grid"></div><div class="more" id="more" hidden><button id="moreBtn"></button></div><div class="empty" id="empty" hidden><p id="emptymsg">No vehicles match that search.</p><button class="fclear" id="emptyclear" style="margin-top:14px" hidden>Clear all filters</button></div></main>
+<main id="main"><h2 class="sr">Vehicles</h2><div class="grid" id="grid"></div><div class="more" id="more" hidden><button id="moreBtn"></button></div><div class="empty" id="empty" hidden><p id="emptymsg">No vehicles match that search.</p><button class="fclear" id="emptyclear" style="margin-top:14px" hidden>Clear all filters</button></div></main>
 
 <section class="lead" id="lead">
   <div class="leadin">
     <div>
-      <h3>Not ready to call?</h3>
+      <h2>Not ready to call?</h2>
       <p class="intro">Tell me what you're after: model, budget, trade-in. I'll come back to you with real options, usually the same day.</p>
     </div>
     <form class="leadf" name="inquiry" method="POST" data-netlify="true" data-netlify-honeypot="bot-field" id="leadform">
@@ -484,13 +493,14 @@ footer{border-top:1px solid var(--rule);background:var(--surface);margin-top:10p
     <div><b>Find your car</b><span>Straight to Stephan</span></div>
     <button class="cx" id="cx" aria-label="Close chat">&times;</button>
   </div>
-  <div class="cbody" id="cbody"></div>
+  <div class="cbody" id="cbody" role="log" aria-live="polite" aria-relevant="additions text"></div>
 </div>
 
 <div class="toast" id="toast" role="status" aria-live="polite"></div>
+<p class="sr" id="say" role="status" aria-live="polite"></p>
 
 <footer><div class="fin">
-  <div><h4>Stephan Sells Cars</h4><p>Sales associate at Gerald Kia of Matteson</p></div>
+  <div><h2>Stephan Sells Cars</h2><p>Sales associate at Gerald Kia of Matteson</p></div>
   <div><p>Call or text <a href="tel:+17089633553">(708) 963-3553</a></p><p id="stamp"></p>
     <div class="soc"><a href="https://www.facebook.com/profile.php?id=61591198603993" target="_blank" rel="noopener noreferrer">Facebook</a><a href="https://www.instagram.com/stephansellscars/" target="_blank" rel="noopener noreferrer">Instagram</a><a href="https://www.tiktok.com/@stephansellscars" target="_blank" rel="noopener noreferrer">TikTok</a></div>
   </div>
@@ -499,7 +509,7 @@ footer{border-top:1px solid var(--rule);background:var(--surface);margin-top:10p
 
 <div class="sheet" id="sheet" role="dialog" aria-modal="true" aria-label="Vehicle details">
   <div class="sheetbar"><div class="inner">
-    <button class="back" id="back">&larr; Back</button>
+    <button class="back" id="back" aria-label="Back to results">&larr; Back</button>
     <div class="ttl" id="stitle"></div>
     <button class="back" id="share" style="margin-left:auto">Share</button>
   </div></div>
@@ -605,7 +615,98 @@ function buildFilters(){
   buildFeat();
   syncBadge();
 }
-function refresh(){ chips(); buildFilters(); render(); }
+// One polite live region for everything worth hearing. Announcing the count is debounced
+// because it changes on every keystroke in the search box, and a screen reader reading out
+// nine intermediate totals while someone types "telluride" is worse than saying nothing.
+let sayTimer = 0;
+function say(msg, delay){
+  clearTimeout(sayTimer);
+  sayTimer = setTimeout(() => { const el = $("#say"); if (el) el.textContent = msg; }, delay || 0);
+}
+function sayCount(){
+  const n = visible().length;
+  const bits = [];
+  if (state.q) bits.push('matching "' + state.q + '"');
+  if (state.body !== "All") bits.push(state.body);
+  if (state.model !== "All") bits.push(state.model);
+  if (state.trim !== "All") bits.push(state.trim);
+  if (state.maxp) bits.push("under " + money(state.maxp));
+  if (state.drive !== "All") bits.push(state.drive);
+  if (state.fuel !== "All") bits.push(state.fuel);
+  state.feat.forEach(i => { if (FEATS[i]) bits.push(FEATS[i]); });
+  say((n === 1 ? "1 vehicle" : n + " vehicles")
+      + (bits.length ? ", " + bits.join(", ") : "")
+      + ", " + (state.kind === "new" ? "new Kias" : "pre-owned"), 400);
+}
+function refresh(){ chips(); buildFilters(); render(); sayCount(); }
+// Only subtract chrome that is actually pinned: the controls bar is sticky on desktop and
+// static on phones, so measuring it beats assuming it.
+function stickyH(el){
+  if (!el) return 0;
+  const pos = getComputedStyle(el).position;
+  return (pos === "sticky" || pos === "fixed") ? el.offsetHeight : 0;
+}
+function toResults(){
+  const grid = $("#grid"); if (!grid) return;
+  if (grid.getBoundingClientRect().top >= 0) return;
+  grid.style.scrollMarginTop =
+    (stickyH(document.querySelector("header")) + stickyH($(".controls")) + 10) + "px";
+  grid.scrollIntoView({ behavior: "smooth", block: "start" });
+}
+function applyChange(push){ shown = PAGE; refresh(); syncURL(push !== false); toResults(); }
+
+// A filtered view is worth sharing: "every SUV I have under $40,000" should be a link, not a
+// set of instructions. Features travel as NAMES, never as their indexes, because the index
+// list is rebuilt from the dealer's data every morning and yesterday's number 7 is not
+// today's. Discrete controls push a history entry so Back steps through the choices; typing
+// in the search box replaces instead, or one search would bury the page in history.
+const URLKEYS = ["tab","q","body","max","model","trim","drive","fuel","has","sort"];
+function defaultSort(){ return state.kind === "new" ? "pl" : "ph"; }
+function stateToSearch(){
+  const p = new URLSearchParams();
+  if (state.kind !== "new")   p.set("tab", "used");
+  if (state.q)                p.set("q", state.q);
+  if (state.body !== "All")   p.set("body", state.body);
+  if (state.maxp)             p.set("max", state.maxp);
+  if (state.model !== "All")  p.set("model", state.model);
+  if (state.trim !== "All")   p.set("trim", state.trim);
+  if (state.drive !== "All")  p.set("drive", state.drive);
+  if (state.fuel !== "All")   p.set("fuel", state.fuel);
+  if (state.feat.length)      p.set("has", state.feat.map(i => FEATS[i]).filter(Boolean).join("|"));
+  if (state.sort !== defaultSort()) p.set("sort", state.sort);
+  const s = p.toString();
+  return s ? "?" + s : "";
+}
+function syncURL(push){
+  if ($("#sheet").classList.contains("on")) return;   // the sheet owns the URL while it is open
+  const next = location.pathname + stateToSearch();
+  if (next === location.pathname + location.search) return;
+  try { history[push ? "pushState" : "replaceState"]({ f: 1 }, "", next); } catch (e) {}
+}
+function hasFilterParams(){
+  const p = new URLSearchParams(location.search);
+  return URLKEYS.some(k => p.has(k));
+}
+function applySearchParams(){
+  const p = new URLSearchParams(location.search);
+  state.kind  = p.get("tab") === "used" ? "used" : "new";
+  V = state.kind === "new" ? DATA.new : DATA.used;
+  state.q     = (p.get("q") || "").toLowerCase().trim();
+  state.body  = p.get("body")  || "All";
+  state.maxp  = Math.max(0, parseInt(p.get("max"), 10) || 0);
+  state.model = p.get("model") || "All";
+  state.trim  = p.get("trim")  || "All";
+  state.drive = p.get("drive") || "All";
+  state.fuel  = p.get("fuel")  || "All";
+  state.feat  = (p.get("has") || "").split("|").filter(Boolean)
+                  .map(n => FEATS.indexOf(n)).filter(i => i >= 0);
+  const srt = p.get("sort");
+  state.sort  = ["pl","ph","mi","yr"].includes(srt) ? srt : defaultSort();
+  $("#q").value = state.q;
+  $("#sort").value = state.sort;
+  [...$("#tabs").children].forEach(c => c.setAttribute("aria-selected", c.dataset.k === state.kind));
+  shown = PAGE; refresh();
+}
 // Trim only makes sense inside a model: 31 trim names exist but "EX" belongs to nine
 // different Kias, so a standalone list would mix Carnival EXs with K4 EXs.
 function buildTrim(){
@@ -655,14 +756,14 @@ $("#tabs").addEventListener("click", e => {
   state.sort = state.kind === "new" ? "pl" : "ph";
   $("#sort").value = state.sort;
   [...$("#tabs").children].forEach(c => c.setAttribute("aria-selected", c===b));
-  clearFilters(); refresh();
+  clearFilters(); applyChange();
 });
 $("#sort").value = state.sort;
 $("#bodychips").addEventListener("click", e => {
   const b = e.target.closest(".chip"); if (!b) return;
-  state.body = b.dataset.b; shown = PAGE; refresh();
+  state.body = b.dataset.b; applyChange();
 });
-$("#q").addEventListener("input", e => { state.q = e.target.value.toLowerCase().trim(); shown = PAGE; refresh(); });
+$("#q").addEventListener("input", e => { state.q = e.target.value.toLowerCase().trim(); applyChange(false); });
 $("#fbtn").addEventListener("click", () => {
   const open = $("#fpanel").classList.toggle("on");
   $("#fbtn").setAttribute("aria-expanded", open);
@@ -678,22 +779,22 @@ function closeFilters(){
   if (bar && bar.getBoundingClientRect().top < 0) bar.scrollIntoView({ behavior: "smooth", block: "start" });
 }
 $("#fdone").addEventListener("click", closeFilters);
-$("#fprice").addEventListener("change", e => { state.maxp = +e.target.value; shown = PAGE; refresh(); });
+$("#fprice").addEventListener("change", e => { state.maxp = +e.target.value; applyChange(); });
 $("#fmodel").addEventListener("change", e => {
-  state.model = e.target.value; state.trim = "All"; shown = PAGE; refresh();
+  state.model = e.target.value; state.trim = "All"; applyChange();
 });
-$("#ftrim").addEventListener("change", e => { state.trim = e.target.value; shown = PAGE; refresh(); });
+$("#ftrim").addEventListener("change", e => { state.trim = e.target.value; applyChange(); });
 $("#ffeat").addEventListener("click", e => {
   const b = e.target.closest("button"); if (!b) return;
   const i = +b.dataset.i, at = state.feat.indexOf(i);
   if (at < 0) state.feat.push(i); else state.feat.splice(at, 1);
-  shown = PAGE; refresh();
+  applyChange();
 });
-$("#fdrive").addEventListener("change", e => { state.drive = e.target.value; shown = PAGE; refresh(); });
-$("#ffuel").addEventListener("change",  e => { state.fuel  = e.target.value; shown = PAGE; refresh(); });
-$("#fclear").addEventListener("click", () => { clearFilters(); shown = PAGE; refresh(); });
-$("#emptyclear").addEventListener("click", () => { clearFilters(); shown = PAGE; refresh(); });
-$("#sort").addEventListener("change", e => { state.sort = e.target.value; shown = PAGE; render(); });
+$("#fdrive").addEventListener("change", e => { state.drive = e.target.value; applyChange(); });
+$("#ffuel").addEventListener("change",  e => { state.fuel  = e.target.value; applyChange(); });
+$("#fclear").addEventListener("click", () => { clearFilters(); applyChange(); });
+$("#emptyclear").addEventListener("click", () => { clearFilters(); applyChange(); });
+$("#sort").addEventListener("change", e => { state.sort = e.target.value; shown = PAGE; render(); toResults(); });
 
 function visible(){
   const s = { ph:(a,b)=>b.p-a.p, pl:(a,b)=>a.p-b.p, mi:(a,b)=>a.mi-b.mi, yr:(a,b)=>b.y-a.y }[state.sort];
@@ -702,6 +803,14 @@ function visible(){
 
 const IMGP="https://cloudflareimages.dealereprocess.com/resrc/images/c_limit,fl_lossy,w_",IMGQ="/v1/";
 const img=(t,w)=>IMGP+w+IMGQ+t;
+// A card is 272px wide at most, so a 600px file was between two and four times the pixels
+// anyone can see. The candidates stop at 600 so a 3x phone is never asked to download MORE
+// than it does today; every ordinary desktop drops to 300 or 400 and saves about 100 KB a card.
+const srcset = (tail, ws) => ws.map(w => img(tail, w) + " " + w + "w").join(", ");
+const CARD_W = [300, 400, 600];
+const CARD_SIZES = "(min-width:1180px) 272px, (min-width:880px) 30vw, (min-width:560px) 46vw, 92vw";
+const GAL_W = [600, 900, 1200];
+const GAL_SIZES = "(min-width:861px) 660px, 100vw";
 function render(){
   const r = visible();
   $("#count").textContent = r.length + (r.length===1?" vehicle":" vehicles");
@@ -715,12 +824,35 @@ function render(){
     ? "No vehicles match those filters." + (state.q ? " Try clearing the search too." : "")
     : "No vehicles match that search.";
   $("#emptyclear").hidden = !nf;
-  const page = r.slice(0, shown);
-  $("#more").hidden = r.length <= shown;
-  if (r.length > shown) $("#moreBtn").textContent = "Show " + Math.min(PAGE, r.length - shown) + " more";
-  $("#grid").innerHTML = page.map(v => `
-    <button class="card" data-s="${esc(v.s)}">
-      <div class="shot"><img class="${v.br?'brd':''}" src="${esc(img(v.g[0],600))}" alt="${esc(label(v))}" loading="lazy" width="600" height="450">
+  $("#grid").innerHTML = r.slice(0, shown).map(cardHTML).join("");
+  paintMore(r.length);
+}
+function paintMore(total){
+  $("#more").hidden = total <= shown;
+  if (total > shown) $("#moreBtn").textContent = "Show " + Math.min(PAGE, total - shown) + " more";
+}
+// Redrawing all 400 cards to add 60 threw the page about 600px whenever it was clicked from
+// the bottom, because the grid emptied for an instant and the browser clamped the scroll.
+// Appending leaves every existing card, and your place, untouched.
+function showMore(){
+  const r = visible(), from = shown;
+  shown = Math.min(shown + PAGE, r.length);
+  $("#grid").insertAdjacentHTML("beforeend", r.slice(from, shown).map(cardHTML).join(""));
+  paintMore(r.length);
+  say("Showing " + shown + " of " + r.length + " vehicles");
+}
+// Without this a screen reader reads a card as loose fragments: "MSRP", "52,000", "2026 Kia
+// Telluride", "SX Prestige", "New", "AWD". One label makes each card a single sentence.
+function cardLabel(v){
+  return [label(v), v.tr, money(v.p) + (v.k === "new" ? " M S R P" : ""),
+          v.k === "new" ? "new" : miles(v.mi), v.dr || v.b,
+          v.nw ? "just arrived" : "", v.was ? "price drop" : "",
+          v.g.length > 1 ? v.g.length + " photos" : ""].filter(Boolean).join(", ");
+}
+function cardHTML(v){
+  return `
+    <button class="card" data-s="${esc(v.s)}" aria-label="${esc(cardLabel(v))}">
+      <div class="shot"><img class="${v.br?'brd':''}" src="${esc(img(v.g[0],600))}" srcset="${esc(srcset(v.g[0], CARD_W))}" sizes="${CARD_SIZES}" alt="${esc(label(v))}" loading="lazy" decoding="async" width="600" height="450">
         ${v.nw?`<span class="flag">Just arrived</span>`:""}
         ${v.g.length>1?`<span class="nph">${v.g.length} photos</span>`:""}</div>
       <div class="cbody">
@@ -731,10 +863,10 @@ function render(){
         ${v.tr?`<div class="trim">${esc(v.tr)}</div>`:""}
         <div class="meta tnum">${v.k==="new"?`<span><b>New</b></span><span>${esc(v.dr||v.b)}</span>`:`<span><b>${miles(v.mi)}</b></span><span>${esc(v.dr||v.b)}</span>`}</div>
       </div>
-    </button>`).join("");
+    </button>`;
 }
 
-$("#moreBtn").addEventListener("click", () => { shown += PAGE; render(); });
+$("#moreBtn").addEventListener("click", showMore);
 $("#grid").addEventListener("click", e => {
   const c = e.target.closest(".card"); if (!c) return;
   open(V.find(v => v.s === c.dataset.s));
@@ -777,7 +909,7 @@ const socialLinks = () => SOCIAL.map(([n,u]) =>
 function contactBlock(v){
   const tag = `${label(v)}${v.tr?" "+v.tr:""} (Stock ${v.s})`;
   return `<div class="dcontact">
-    <h3>Questions on this one?</h3>
+    <h2>Questions on this one?</h2>
     <p class="intro">Send it over and I'll get back to you, usually the same day.</p>
     <form class="leadf" name="inquiry" method="POST" data-netlify="true" data-netlify-honeypot="bot-field">
       <input type="hidden" name="form-name" value="inquiry">
@@ -797,12 +929,25 @@ function contactBlock(v){
 }
 
 let gi = 0, cur = null;
+// The next photo only began downloading when it was asked for, so every arrow press paused
+// on a blank frame. Warming the two neighbours costs nothing extra overall: they are the
+// photos about to be requested anyway. Same srcset, so the browser picks the same file.
+function warmPhoto(tail){
+  if (!tail) return;
+  const im = new Image();
+  im.sizes = GAL_SIZES;
+  im.srcset = srcset(tail, GAL_W);
+  im.src = img(tail, 900);
+}
 function setPhoto(i){
   if (!cur || !cur.g.length) return;
   const n = cur.g.length;
   gi = ((i % n) + n) % n;
   const m = $("#gmain"); if (!m) return;
-  m.src = img(cur.g[gi],1200);
+  m.sizes = GAL_SIZES;
+  m.srcset = srcset(cur.g[gi], GAL_W);
+  m.src = img(cur.g[gi], 1200);
+  m.alt = "Photo " + (gi + 1) + " of " + n + ", " + label(cur);
   m.classList.toggle("brd", gi === 0 && !!cur.br);
   const c = $("#gcount"); if (c) c.textContent = (gi+1) + " / " + n;
   const th = $("#thumbs");
@@ -811,6 +956,7 @@ function setPhoto(i){
     const act = th.children[gi];
     if (act) th.scrollTo({ left: act.offsetLeft - th.clientWidth/2 + act.clientWidth/2, behavior:"smooth" });
   }
+  if (n > 1){ warmPhoto(cur.g[(gi + 1) % n]); warmPhoto(cur.g[(gi - 1 + n) % n]); }
 }
 function open(v){
   cur = v; gi = 0;
@@ -821,11 +967,11 @@ function open(v){
   $("#stitle").textContent = label(v);
   $("#sheetin").innerHTML = `
     <div class="gal">
-      <div class="gmain" id="gmainwrap"><img id="gmain" class="${v.br?'brd':''}" src="${esc(img(v.g[0],1200))}" alt="${esc(label(v))}" width="1200" height="900">
+      <div class="gmain" id="gmainwrap"><img id="gmain" class="${v.br?'brd':''}" src="${esc(img(v.g[0],1200))}" srcset="${esc(srcset(v.g[0], GAL_W))}" sizes="${GAL_SIZES}" alt="${esc(label(v))}" decoding="async" width="1200" height="900">
         ${v.g.length>1?`<button class="gnav gprev" id="gprev" aria-label="Previous photo">&#8249;</button>
         <button class="gnav gnext" id="gnext" aria-label="Next photo">&#8250;</button>
-        <div class="gcount" id="gcount">1 / ${v.g.length}</div>`:""}</div>
-      ${v.g.length>1?`<div class="thumbs" id="thumbs">${v.g.map((u,i)=>
+        <div class="gcount" id="gcount" role="status" aria-live="polite">1 / ${v.g.length}</div>`:""}</div>
+      ${v.g.length>1?`<div class="thumbs" id="thumbs" role="group" aria-label="Photo thumbnails">${v.g.map((u,i)=>
         `<button data-i="${i}" aria-current="${i===0}" aria-label="Photo ${i+1}"><img class="${(i===0&&v.br)?'brd':''}" src="${esc(img(u,160))}" alt="" loading="lazy"></button>`).join("")}</div>`:""}
     </div>
     <div class="info">
@@ -842,8 +988,8 @@ function open(v){
       </div>
       <div class="specs"><dl>${spec.map(([k,val])=>
         `<div class="row"><dt>${esc(k)}</dt><dd class="${k==="VIN"||k==="Mileage"?"tnum":""}">${esc(val)}</dd></div>`).join("")}</dl></div>
-      ${v.d?`<div class="desc"><h3>About this vehicle</h3><p>${esc(v.d)}</p></div>`:""}
-      ${v.f && v.f.length ? `<div class="featwrap"><h3>Popular features</h3><div class="featrow">${
+      ${v.d?`<div class="desc"><h2>About this vehicle</h2><p>${esc(v.d)}</p></div>`:""}
+      ${v.f && v.f.length ? `<div class="featwrap"><h2>Popular features</h2><div class="featrow">${
         v.f.map(i => `<span class="feat">${esc(FEATS[i])}</span>`).join("")}</div></div>` : ""}
       ${contactBlock(v)}
       <div class="stickybuy"><div class="acts">
@@ -878,20 +1024,39 @@ function open(v){
   $("#sheet").classList.add("on");
   document.body.style.overflow = "hidden";
   $("#sheet").scrollTop = 0;
+  // It called itself a dialog but left focus out on the grid behind it, so a keyboard or
+  // screen reader user was told a dialog opened and then had to go looking for it. Move in,
+  // seal the page behind, and remember where to put focus back.
+  lastFocus = document.activeElement;
+  $("#sheet").setAttribute("aria-label", label(v) + (v.tr ? " " + v.tr : "") + ", vehicle details");
+  pageInert(true);
+  const back = $("#back"); if (back) back.focus({ preventScroll: true });
   history.pushState({v:v.s}, "", "#" + v.s);
+}
+let lastFocus = null;
+function pageInert(on){
+  ["header", "#main", "#lead", "footer", "#quick"].forEach(sel => {
+    const el = document.querySelector(sel); if (!el) return;
+    if (on) el.setAttribute("inert", ""); else el.removeAttribute("inert");
+  });
 }
 function close(fromHistory){
   $("#sheet").classList.remove("on");
   document.body.style.overflow = "";
+  pageInert(false);
+  // Back to the card you came from, not the top of the page.
+  if (lastFocus && document.contains(lastFocus)) lastFocus.focus({ preventScroll: true });
+  lastFocus = null;
   $("#cbub").hidden = CH.isOpen;
   $("#cpanel").hidden = !CH.isOpen;
   if (CH.detailViews >= 2) setTimeout(chatNudge, 400);
-  if (!fromHistory) history.pushState({}, "", location.pathname);
+  if (!fromHistory) history.pushState({}, "", location.pathname + stateToSearch());
 }
 // A click handler is passed the event, which is truthy, so it must not reach fromHistory.
 $("#back").addEventListener("click", () => close());
 addEventListener("popstate", () => {
-  if (!location.hash && $("#sheet").classList.contains("on")) close(true);
+  if (!location.hash && $("#sheet").classList.contains("on")){ close(true); return; }
+  if (!$("#sheet").classList.contains("on")) applySearchParams();
 });
 addEventListener("keydown", e => {
   if (e.key === "Escape" && !$("#cpanel").hidden){ cClose(); return; }
@@ -1216,7 +1381,7 @@ function cApply(n){
   state.sort = "pl"; shown = PAGE; $("#q").value = "";
   [...$("#tabs").children].forEach(c => c.setAttribute("aria-selected", c.dataset.k === CH.kind));
   if (CH.body) state.body = CH.body;
-  $("#sort").value = state.sort; refresh();
+  $("#sort").value = state.sort; refresh(); syncURL(true);
   cClose();
   $(".controls").scrollIntoView({ behavior: "smooth", block: "start" });
   toast(`Showing ${n} vehicles`);
@@ -1291,7 +1456,14 @@ function cOpen(auto){
   if (!CH.seeded){ CH.seeded = true; cStart(); }
   if (!auto) cBody().querySelector(".copts button")?.focus();
 }
-function cClose(){ $("#cpanel").hidden = true; $("#cbub").hidden = false; CH.isOpen = false; }
+function cClose(){
+  // Only take focus back if it was inside the panel being closed, so a programmatic close
+  // never yanks the caret out of whatever the buyer was actually typing in.
+  const inside = document.activeElement && document.activeElement.closest &&
+                 document.activeElement.closest("#cpanel");
+  $("#cpanel").hidden = true; $("#cbub").hidden = false; CH.isOpen = false;
+  if (inside) $("#cbub").focus({ preventScroll: true });
+}
 $("#cbub").addEventListener("click", () => cOpen(false));
 $("#cx").addEventListener("click", cClose);
 
@@ -1322,6 +1494,7 @@ addEventListener("scroll", () => {
 chips(); buildFilters();
 $("#stamp").textContent = "Inventory updated " + new Date(document.lastModified).toLocaleDateString("en-US",{month:"long",day:"numeric",year:"numeric"});
 render();
+if (hasFilterParams()) applySearchParams();
 const DL = (new URLSearchParams(location.search).get("v") || decodeURIComponent(location.hash.slice(1)) || "").trim();
 if (DL){ const id=DL;
   const v = DATA.new.find(x=>x.s===id) || DATA.used.find(x=>x.s===id);
