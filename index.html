@@ -116,6 +116,19 @@ input:focus-visible,select:focus-visible,button:focus-visible,a:focus-visible{ou
   font-family:var(--fl);font-weight:600;font-size:13.5px;letter-spacing:.05em;text-transform:uppercase;color:var(--muted)}
 .chip[aria-pressed="true"]{background:var(--ink);color:var(--paper);border-color:var(--ink)}
 .chip .cn{opacity:.55;margin-left:3px;letter-spacing:.02em}
+/* The lot toggle sits in the bar, not in the Filters panel: "can I drive it today" is the
+   first question an in-store buyer asks, so it should never be two taps deep. */
+.lot{display:inline-flex;align-items:center;gap:8px;background:var(--surface);border:1px solid var(--rule);
+  border-radius:2px;padding:8px 13px;cursor:pointer;font-family:var(--fl);font-weight:600;font-size:13.5px;
+  letter-spacing:.05em;text-transform:uppercase;color:var(--ink)}
+.lot .sw{width:26px;height:15px;border-radius:999px;background:var(--rule);position:relative;flex:none;transition:background .15s ease}
+.lot .sw::after{content:"";position:absolute;top:2px;left:2px;width:11px;height:11px;border-radius:50%;
+  background:var(--surface);transition:transform .15s ease}
+.lot[aria-pressed="true"]{border-color:var(--accent)}
+.lot[aria-pressed="true"] .sw{background:var(--accent)}
+.lot[aria-pressed="true"] .sw::after{transform:translateX(11px)}
+.lot .cn{opacity:.55;letter-spacing:.02em}
+@media (prefers-reduced-motion:reduce){.lot .sw,.lot .sw::after{transition:none}}
 .count{font-family:var(--fl);font-weight:600;font-size:13px;letter-spacing:.09em;text-transform:uppercase;color:var(--muted);margin-left:auto}
 .fbtn{background:var(--surface);border:1px solid var(--rule);border-radius:2px;padding:8px 13px;cursor:pointer;
   font-family:var(--fl);font-weight:600;font-size:13.5px;letter-spacing:.04em;color:var(--ink);display:flex;align-items:center;gap:7px}
@@ -432,6 +445,8 @@ footer{border-top:1px solid var(--rule);background:var(--surface);margin-top:10p
   <div class="ctlin">
     <div class="search"><input id="q" type="search" placeholder="Search make, model, year&hellip;" aria-label="Search inventory"></div>
     <div class="chips" id="bodychips"></div>
+    <button class="lot" id="lotbtn" type="button" aria-pressed="false" aria-describedby="lothint" hidden><span class="sw" aria-hidden="true"></span>On the lot in Matteson <span class="cn" id="lotn"></span></button>
+    <span class="sr" id="lothint">New Kias parked at Gerald Kia of Matteson, ready to test drive today. Turn off to include Naperville and North Aurora.</span>
     <select id="sort" aria-label="Sort inventory">
       <option value="ph">Price: High to Low</option>
       <option value="pl">Price: Low to High</option>
@@ -552,7 +567,7 @@ const esc = s => String(s).replace(/[&<>"]/g, c => ({"&":"&amp;","<":"&lt;",">":
 const label = v => v.y + " " + v.mk + " " + v.md;
 
 let state = { q:"", body:"All", sort:"pl", kind:"new", maxp:0, model:"All", drive:"All", fuel:"All",
-              trim:"All", feat:[] };
+              trim:"All", feat:[], lot:false };
 let FEATS = [];
 const baseModel = v => (v.md||"").replace(/\s+(Plug-In Hybrid|Hybrid)$/i, "").trim() || (v.md||"");
 const fuelOf = v => /plug-?in/i.test(v.md||"") ? "Plug-in Hybrid" : (v.fu||"");
@@ -573,9 +588,24 @@ const PRED = {
   drive: v => state.drive === "All" || v.dr === state.drive,
   fuel:  v => state.fuel === "All" || fuelOf(v) === state.fuel,
   feat:  v => !state.feat.length || state.feat.every(i => (v.f || []).includes(i)),
-  q:     qOk
+  q:     qOk,
+  lot:   v => !lotOn() || v.lot === 1
 };
 const FACETS = Object.keys(PRED);
+// Only the New tab is split by store: every pre-owned car sits in the same auto mall and can
+// be driven today. Older data files carry no lot field at all, and then the toggle stays
+// hidden rather than filtering the tab down to nothing.
+function lotKnown(){ return !!(DATA && DATA.new && DATA.new.some(v => v.lot !== undefined)); }
+function lotOn(){ return state.lot && state.kind === "new" && lotKnown(); }
+function buildLot(){
+  const b = $("#lotbtn");
+  const show = state.kind === "new" && lotKnown();
+  b.hidden = !show;
+  if (!show) return;
+  const n = pool(["lot"]).filter(v => v.lot === 1).length;
+  b.setAttribute("aria-pressed", String(lotOn()));
+  $("#lotn").textContent = "(" + n + ")";
+}
 function pool(skip){
   const use = FACETS.filter(k => !(skip || []).includes(k));
   return V.filter(v => { for (const k of use) if (!PRED[k](v)) return false; return true; });
@@ -651,6 +681,7 @@ function say(msg, delay){
 function sayCount(){
   const n = visible().length;
   const bits = [];
+  if (lotOn()) bits.push("on the Matteson lot");
   if (state.q) bits.push('matching "' + state.q + '"');
   if (state.body !== "All") bits.push(state.body);
   if (state.model !== "All") bits.push(state.model);
@@ -663,7 +694,7 @@ function sayCount(){
       + (bits.length ? ", " + bits.join(", ") : "")
       + ", " + (state.kind === "new" ? "new Kias" : "pre-owned"), 400);
 }
-function refresh(){ if (!DATA) return; chips(); buildFilters(); render(); sayCount(); }
+function refresh(){ if (!DATA) return; chips(); buildLot(); buildFilters(); render(); sayCount(); }
 // Only subtract chrome that is actually pinned: the controls bar is sticky on desktop and
 // static on phones, so measuring it beats assuming it.
 function stickyH(el){
@@ -685,12 +716,13 @@ function applyChange(push){ shown = PAGE; refresh(); syncURL(push !== false); to
 // list is rebuilt from the dealer's data every morning and yesterday's number 7 is not
 // today's. Discrete controls push a history entry so Back steps through the choices; typing
 // in the search box replaces instead, or one search would bury the page in history.
-const URLKEYS = ["tab","q","body","max","model","trim","drive","fuel","has","sort"];
+const URLKEYS = ["tab","q","lot","body","max","model","trim","drive","fuel","has","sort"];
 function defaultSort(){ return state.kind === "new" ? "pl" : "ph"; }
 function stateToSearch(){
   const p = new URLSearchParams();
   if (state.kind !== "new")   p.set("tab", "used");
   if (state.q)                p.set("q", state.q);
+  if (lotOn())                p.set("lot", "1");
   if (state.body !== "All")   p.set("body", state.body);
   if (state.maxp)             p.set("max", state.maxp);
   if (state.model !== "All")  p.set("model", state.model);
@@ -717,6 +749,7 @@ function applySearchParams(){
   state.kind  = p.get("tab") === "used" ? "used" : "new";
   V = state.kind === "new" ? DATA.new : DATA.used;
   state.q     = (p.get("q") || "").toLowerCase().trim();
+  state.lot   = p.get("lot") === "1";
   state.body  = p.get("body")  || "All";
   state.maxp  = Math.max(0, parseInt(p.get("max"), 10) || 0);
   state.model = p.get("model") || "All";
@@ -787,6 +820,7 @@ $("#bodychips").addEventListener("click", e => {
   const b = e.target.closest(".chip"); if (!b) return;
   state.body = b.dataset.b; applyChange();
 });
+$("#lotbtn").addEventListener("click", () => { state.lot = !state.lot; applyChange(); });
 $("#q").addEventListener("input", e => { state.q = e.target.value.toLowerCase().trim(); applyChange(false); });
 $("#fbtn").addEventListener("click", () => {
   const open = $("#fpanel").classList.toggle("on");
@@ -817,7 +851,7 @@ $("#ffeat").addEventListener("click", e => {
 $("#fdrive").addEventListener("change", e => { state.drive = e.target.value; applyChange(); });
 $("#ffuel").addEventListener("change",  e => { state.fuel  = e.target.value; applyChange(); });
 $("#fclear").addEventListener("click", () => { clearFilters(); applyChange(); });
-$("#emptyclear").addEventListener("click", () => { clearFilters(); applyChange(); });
+$("#emptyclear").addEventListener("click", () => { clearFilters(); state.lot = false; applyChange(); });
 $("#sort").addEventListener("change", e => { state.sort = e.target.value; shown = PAGE; render(); toResults(); });
 
 function visible(){
@@ -846,10 +880,14 @@ function render(){
     : r.length === 1 ? "Show 1 vehicle" : "Show " + r.length + " vehicles";
   $("#empty").hidden = r.length > 0;
   const nf = activeCount();
-  $("#emptymsg").textContent = nf
+  // Only blame the lot toggle when turning it off would actually produce cars.
+  const lotBlocks = lotOn() && pool(["lot"]).length > 0;
+  $("#emptymsg").textContent = lotBlocks
+    ? "None of the new Kias on the Matteson lot match that. Turn off \u201cOn the lot\u201d to include Naperville and North Aurora, or call or text me and I will find one."
+    : nf
     ? "No vehicles match those filters." + (state.q ? " Try clearing the search too." : "")
     : "No vehicles match that search.";
-  $("#emptyclear").hidden = !nf;
+  $("#emptyclear").hidden = !(nf || lotBlocks);
   $("#grid").innerHTML = r.slice(0, shown).map(cardHTML).join("");
   paintMore(r.length);
 }
@@ -1123,7 +1161,7 @@ paintToggle();
 const SITE = "https://stephansellscars.com";
 function goHome(){
   if ($("#sheet").classList.contains("on")) close();
-  state.kind = "new"; state.q = ""; state.body = "All"; state.sort = "pl";
+  state.kind = "new"; state.q = ""; state.body = "All"; state.sort = "pl"; state.lot = false;
   clearFilters();
   V = DATA.new; shown = PAGE;
   $("#q").value = ""; $("#sort").value = state.sort;
@@ -1400,6 +1438,7 @@ function cTextThese(hits){
          ["Back to the cars", () => cResults(), true]]);
 }
 function cApply(n){
+  state.lot = false;
   state.kind = CH.kind; V = cPool(); state.maxp = CH.maxp; state.body = "All";
   state.model = "All"; state.drive = "All"; state.fuel = "All"; state.q = "";
   state.trim = "All"; state.feat = CH.feat.slice();
@@ -1415,7 +1454,7 @@ function cApply(n){
 function cNoMatch(fromResults){
   cBot(fromResults
     ? "No problem. Tell me what you're after and I'll go find it. I can look at the other Gerald stores and at cars coming in."
-    : `Nothing on the lot matches <b>${esc(cSummary())}</b> right now. That happens, but I can go find one. Inventory turns over weekly, and I can check the other Gerald stores and units already on the way.`);
+    : `Nothing in stock matches <b>${esc(cSummary())}</b> right now. That happens, but I can go find one. Inventory turns over weekly, and I can check the other Gerald stores and units already on the way.`);
   cLead("sourcing");
 }
 function cWhatsNew(){
@@ -1424,7 +1463,7 @@ function cWhatsNew(){
   const pick = drops.concat(fresh).slice(0, 3);
   cBot(drops.length
     ? `${drops.length} ${drops.length === 1 ? "vehicle has" : "vehicles have"} dropped in price this week${fresh.length ? `, and ${fresh.length} just landed` : ""}.`
-    : `${fresh.length} ${fresh.length === 1 ? "vehicle" : "vehicles"} just landed on the lot.`);
+    : `${fresh.length} ${fresh.length === 1 ? "vehicle" : "vehicles"} just arrived.`);
   const list = cAdd("chits", "");
   pick.forEach(v => {
     const b = document.createElement("button");
@@ -1451,7 +1490,7 @@ function cLead(mode, cars){
   const tagBits = {
     matches:  "CHAT - wants these: " + cSummary(),
     whatsnew: "CHAT - asked what's new",
-    sourcing: "SOURCING REQUEST - nothing on the lot matched: " + (CH.kind ? cSummary() : "criteria not given")
+    sourcing: "SOURCING REQUEST - nothing in stock matched: " + (CH.kind ? cSummary() : "criteria not given")
   };
   let tag = tagBits[mode] || "CHAT";
   if (cars && cars.length) tag += " | stock " + cars.slice(0, 3).map(v => v.s).join(", ");
@@ -1526,7 +1565,7 @@ function start(data){
   $("#loading").hidden = true;
   $("#dataerr").hidden = true;
   $(".controls").hidden = false;
-  chips(); buildFilters();
+  chips(); buildLot(); buildFilters();
   const when = DATA.updated ? new Date(DATA.updated + "T12:00:00") : new Date(document.lastModified);
   $("#stamp").textContent = "Inventory updated " +
     when.toLocaleDateString("en-US", { month: "long", day: "numeric", year: "numeric" });
@@ -1553,7 +1592,7 @@ function dataFailed(){
 function loadData(){
   $("#dataerr").hidden = true;
   $("#loading").hidden = false;
-  fetch(DATA_URL, { cache: "default" })
+  fetch(DATA_URL, { cache: "no-cache" })
     .then(r => { if (!r.ok) throw new Error("HTTP " + r.status); return r.json(); })
     .then(d => {
       if (!d || !Array.isArray(d.new) || !Array.isArray(d.used)) throw new Error("bad payload");
