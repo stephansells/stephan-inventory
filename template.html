@@ -128,6 +128,21 @@ input:focus-visible,select:focus-visible,button:focus-visible,a:focus-visible{ou
 .lot[aria-pressed="true"] .sw{background:var(--accent)}
 .lot[aria-pressed="true"] .sw::after{transform:translateX(11px)}
 .lot .cn{opacity:.55;letter-spacing:.02em}
+.qf{background:var(--surface);border:1px solid var(--rule);border-radius:2px;padding:8px 13px;cursor:pointer;
+  font-family:var(--fl);font-weight:600;font-size:13.5px;letter-spacing:.05em;text-transform:uppercase;color:var(--muted)}
+.qf[aria-pressed="true"]{background:var(--accent);color:var(--on-accent);border-color:var(--accent)}
+.qf .cn{opacity:.6;margin-left:3px;letter-spacing:.02em}
+.cpo{display:inline-block;border:1px solid var(--rule);border-radius:2px;padding:2px 6px;
+  font-family:var(--fl);font-weight:700;font-size:10.5px;letter-spacing:.08em;text-transform:uppercase;color:var(--muted)}
+/* Saving a car is a shortlist, not an account: it lives in this browser and turns into a
+   text to Stephan, which is the only place a shortlist is worth anything to a buyer. */
+.savebtn{position:absolute;top:8px;right:8px;z-index:2;width:34px;height:34px;border-radius:50%;
+  background:rgba(255,255,255,.92);border:1px solid var(--rule);color:#111;display:grid;place-items:center;
+  cursor:pointer;font-size:16px;line-height:1;padding:0}
+.savebtn[aria-pressed="true"]{background:var(--accent);border-color:var(--accent);color:#fff}
+.savebar{display:flex;gap:10px;align-items:center;flex-wrap:wrap;max-width:1180px;margin:0 auto;padding:0 18px 12px}
+.cardwrap{position:relative;display:flex}
+.cardwrap > .card{flex:1 1 auto;min-width:0}
 @media (prefers-reduced-motion:reduce){.lot .sw,.lot .sw::after{transition:none}}
 .count{font-family:var(--fl);font-weight:600;font-size:13px;letter-spacing:.09em;text-transform:uppercase;color:var(--muted);margin-left:auto}
 .fbtn{background:var(--surface);border:1px solid var(--rule);border-radius:2px;padding:8px 13px;cursor:pointer;
@@ -446,6 +461,10 @@ footer{border-top:1px solid var(--rule);background:var(--surface);margin-top:10p
     <div class="search"><input id="q" type="search" placeholder="Search make, model, year&hellip;" aria-label="Search inventory"></div>
     <div class="chips" id="bodychips"></div>
     <button class="lot" id="lotbtn" type="button" aria-pressed="false" aria-describedby="lothint" hidden><span class="sw" aria-hidden="true"></span>On the lot in Matteson <span class="cn" id="lotn"></span></button>
+    <button class="qf" id="nwbtn" type="button" aria-pressed="false" hidden>Just arrived <span class="cn" id="nwn"></span></button>
+    <button class="qf" id="dropbtn" type="button" aria-pressed="false" hidden>Price drop <span class="cn" id="dropn"></span></button>
+    <button class="qf" id="cpobtn" type="button" aria-pressed="false" hidden>Certified <span class="cn" id="cpon"></span></button>
+    <button class="qf" id="savebar" type="button" aria-pressed="false" hidden>Saved <span class="cn" id="saven"></span></button>
     <span class="sr" id="lothint">New Kias parked at Gerald Kia of Matteson, ready to test drive today. Turn off to include Naperville and North Aurora.</span>
     <select id="sort" aria-label="Sort inventory">
       <option value="ph">Price: High to Low</option>
@@ -459,6 +478,7 @@ footer{border-top:1px solid var(--rule);background:var(--surface);margin-top:10p
   <div class="fpanel" id="fpanel">
     <div class="fpin">
       <div class="fld"><label for="fprice">Max price</label><select id="fprice"></select></div>
+      <div class="fld hide" id="fmiwrap"><label for="fmiles">Max miles</label><select id="fmiles"></select></div>
       <div class="fld"><label for="fmodel">Model</label><select id="fmodel"></select></div>
       <div class="fld hide" id="ftrimwrap"><label for="ftrim">Trim</label><select id="ftrim"></select></div>
       <div class="fld"><label for="fdrive">Drivetrain</label><select id="fdrive"></select></div>
@@ -483,7 +503,7 @@ footer{border-top:1px solid var(--rule);background:var(--surface);margin-top:10p
     <button class="fclear" id="retry">Try again</button>
   </div>
 </div>
-<div class="grid" id="grid"></div><div class="more" id="more" hidden><button id="moreBtn"></button></div><div class="empty" id="empty" hidden><p id="emptymsg">No vehicles match that search.</p><button class="fclear" id="emptyclear" style="margin-top:14px" hidden>Clear all filters</button></div></main>
+<div class="savebar"><a class="btn btn-a" id="savetext" hidden style="border-radius:2px">Text my saved cars to Stephan</a><span id="savenote" hidden style="color:var(--muted);font-size:14px"></span></div><div class="grid" id="grid"></div><div class="more" id="more" hidden><button id="moreBtn"></button></div><div class="empty" id="empty" hidden><p id="emptymsg">No vehicles match that search.</p><button class="fclear" id="emptyclear" style="margin-top:14px" hidden>Clear all filters</button></div></main>
 
 <section class="lead" id="lead">
   <div class="leadin">
@@ -557,6 +577,12 @@ footer{border-top:1px solid var(--rule);background:var(--surface);margin-top:10p
 // deploy. They now live in their own file, fetched at load, so publishing new inventory costs
 // nothing and this page only ships when the DESIGN changes.
 const DATA_URL = "https://stephansells.github.io/inventory-data/inventory.json";
+// The grid needs one photo per car and no description, but the old single file carried all
+// 20 photos and the full text of every car: 383 KB before the first card could be drawn.
+// Splitting it puts 59 KB in front of the buyer and fetches the rest quietly afterwards, so
+// the extra photos are already there by the time anyone opens a car.
+const DETAIL_URL = "https://stephansells.github.io/inventory-data/details.json";
+let DETAILS = 0;   // 0 not started, 1 loading, 2 merged, -1 failed
 let DATA = null;
 let V = null;
 const PHONE = "+17089633553";
@@ -567,7 +593,7 @@ const esc = s => String(s).replace(/[&<>"]/g, c => ({"&":"&amp;","<":"&lt;",">":
 const label = v => v.y + " " + v.mk + " " + v.md;
 
 let state = { q:"", body:"All", sort:"pl", kind:"new", maxp:0, model:"All", drive:"All", fuel:"All",
-              trim:"All", feat:[], lot:false };
+              trim:"All", feat:[], lot:false, maxmi:0, fresh:false, drop:false, cpo:false, saved:false };
 let FEATS = [];
 const baseModel = v => (v.md||"").replace(/\s+(Plug-In Hybrid|Hybrid)$/i, "").trim() || (v.md||"");
 const fuelOf = v => /plug-?in/i.test(v.md||"") ? "Plug-in Hybrid" : (v.fu||"");
@@ -583,13 +609,18 @@ function qOk(v){
 const PRED = {
   body:  v => state.body === "All" || v.b === state.body,
   maxp:  v => !state.maxp || v.p <= state.maxp,
+  maxmi: v => !state.maxmi || (v.mi || 0) <= state.maxmi,
   model: v => state.model === "All" || baseModel(v) === state.model,
   trim:  v => state.trim === "All" || (v.tr || "") === state.trim,
   drive: v => state.drive === "All" || v.dr === state.drive,
   fuel:  v => state.fuel === "All" || fuelOf(v) === state.fuel,
   feat:  v => !state.feat.length || state.feat.every(i => (v.f || []).includes(i)),
   q:     qOk,
-  lot:   v => !lotOn() || v.lot === 1
+  lot:   v => !lotOn() || v.lot === 1,
+  fresh: v => !state.fresh || !!v.nw,
+  drop:  v => !state.drop  || !!v.was,
+  cpo:   v => !cpoOn()     || !!v.cpo,
+  saved: v => !state.saved || SAVED.has(v.s)
 };
 const FACETS = Object.keys(PRED);
 // Only the New tab is split by store: every pre-owned car sits in the same auto mall and can
@@ -597,6 +628,25 @@ const FACETS = Object.keys(PRED);
 // hidden rather than filtering the tab down to nothing.
 function lotKnown(){ return !!(DATA && DATA.new && DATA.new.some(v => v.lot !== undefined)); }
 function lotOn(){ return state.lot && state.kind === "new" && lotKnown(); }
+// Certified is a used-car idea, and a ?cpo=1 link landing on the New tab must not empty it.
+function cpoOn(){ return state.cpo && state.kind === "used"; }
+// Counted against every other active filter, like the dropdowns, and hidden outright when
+// the tab has none: an empty "Price drop (0)" is a dead end, not a filter.
+function buildQuick(){
+  const rows = [["#nwbtn", "#nwn", "fresh", v => v.nw, true],
+                ["#dropbtn", "#dropn", "drop", v => v.was, true],
+                ["#cpobtn", "#cpon", "cpo", v => v.cpo, state.kind === "used"],
+                ["#savebar", "#saven", "saved", v => SAVED.has(v.s), true]];
+  rows.forEach(([btn, num, key, test, allowed]) => {
+    const b = $(btn); if (!b) return;
+    const n = allowed ? pool([key]).filter(test).length : 0;
+    b.hidden = !allowed || (!n && !state[key]);
+    b.setAttribute("aria-pressed", String(!!state[key]));
+    $(num).textContent = n;
+  });
+  const sb = $("#savebar");
+  if (sb && !sb.hidden) sb.setAttribute("aria-label", "Saved cars, " + savedCars().length + " on this device");
+}
 function buildLot(){
   const b = $("#lotbtn");
   const show = state.kind === "new" && lotKnown();
@@ -611,7 +661,7 @@ function pool(skip){
   return V.filter(v => { for (const k of use) if (!PRED[k](v)) return false; return true; });
 }
 function activeCount(){
-  return (state.maxp?1:0) + (state.model!=="All"?1:0) + (state.drive!=="All"?1:0)
+  return (state.maxp?1:0) + (state.maxmi?1:0) + (state.model!=="All"?1:0) + (state.drive!=="All"?1:0)
        + (state.fuel!=="All"?1:0) + (state.trim!=="All"?1:0) + state.feat.length;
 }
 const PAGE = (innerWidth < 700 || innerHeight < 560) ? 24 : 60;
@@ -661,6 +711,7 @@ function buildFilters(){
   $("#fprice").innerHTML = `<option value="0">Any price</option>` +
     steps.map(([c,n]) => `<option value="${c}">Under $${c.toLocaleString("en-US")} (${n})</option>`).join("");
   $("#fprice").value = String(state.maxp || 0);
+  buildMiles();
   // Trim lives inside a model, so a trim left over from another model must not be
   // allowed to hide every model in the list.
   opts($("#fmodel"), tally(baseModel, pool(["model","trim"])), state.model, "All models");
@@ -682,11 +733,16 @@ function sayCount(){
   const n = visible().length;
   const bits = [];
   if (lotOn()) bits.push("on the Matteson lot");
+  if (state.fresh) bits.push("just arrived");
+  if (state.drop) bits.push("price drop");
+  if (cpoOn()) bits.push("certified");
+  if (state.saved) bits.push("saved");
   if (state.q) bits.push('matching "' + state.q + '"');
   if (state.body !== "All") bits.push(state.body);
   if (state.model !== "All") bits.push(state.model);
   if (state.trim !== "All") bits.push(state.trim);
   if (state.maxp) bits.push("under " + money(state.maxp));
+  if (state.maxmi) bits.push("under " + state.maxmi.toLocaleString("en-US") + " miles");
   if (state.drive !== "All") bits.push(state.drive);
   if (state.fuel !== "All") bits.push(state.fuel);
   state.feat.forEach(i => { if (FEATS[i]) bits.push(FEATS[i]); });
@@ -694,7 +750,7 @@ function sayCount(){
       + (bits.length ? ", " + bits.join(", ") : "")
       + ", " + (state.kind === "new" ? "new Kias" : "pre-owned"), 400);
 }
-function refresh(){ if (!DATA) return; chips(); buildLot(); buildFilters(); render(); sayCount(); }
+function refresh(){ if (!DATA) return; chips(); buildLot(); buildQuick(); buildFilters(); render(); sayCount(); }
 // Only subtract chrome that is actually pinned: the controls bar is sticky on desktop and
 // static on phones, so measuring it beats assuming it.
 function stickyH(el){
@@ -716,15 +772,19 @@ function applyChange(push){ shown = PAGE; refresh(); syncURL(push !== false); to
 // list is rebuilt from the dealer's data every morning and yesterday's number 7 is not
 // today's. Discrete controls push a history entry so Back steps through the choices; typing
 // in the search box replaces instead, or one search would bury the page in history.
-const URLKEYS = ["tab","q","lot","body","max","model","trim","drive","fuel","has","sort"];
+const URLKEYS = ["tab","q","lot","new","drop","cpo","body","max","maxmi","model","trim","drive","fuel","has","sort"];
 function defaultSort(){ return state.kind === "new" ? "pl" : "ph"; }
 function stateToSearch(){
   const p = new URLSearchParams();
   if (state.kind !== "new")   p.set("tab", "used");
   if (state.q)                p.set("q", state.q);
   if (lotOn())                p.set("lot", "1");
+  if (state.fresh)            p.set("new", "1");
+  if (state.drop)             p.set("drop", "1");
+  if (cpoOn())                p.set("cpo", "1");
   if (state.body !== "All")   p.set("body", state.body);
   if (state.maxp)             p.set("max", state.maxp);
+  if (state.maxmi && state.kind === "used") p.set("maxmi", state.maxmi);
   if (state.model !== "All")  p.set("model", state.model);
   if (state.trim !== "All")   p.set("trim", state.trim);
   if (state.drive !== "All")  p.set("drive", state.drive);
@@ -750,8 +810,13 @@ function applySearchParams(){
   V = state.kind === "new" ? DATA.new : DATA.used;
   state.q     = (p.get("q") || "").toLowerCase().trim();
   state.lot   = p.get("lot") === "1";
+  state.fresh = p.get("new") === "1";
+  state.drop  = p.get("drop") === "1";
+  state.cpo   = p.get("cpo") === "1";
+  state.saved = false;
   state.body  = p.get("body")  || "All";
   state.maxp  = Math.max(0, parseInt(p.get("max"), 10) || 0);
+  state.maxmi = Math.max(0, parseInt(p.get("maxmi"), 10) || 0);
   state.model = p.get("model") || "All";
   state.trim  = p.get("trim")  || "All";
   state.drive = p.get("drive") || "All";
@@ -764,6 +829,33 @@ function applySearchParams(){
   $("#sort").value = state.sort;
   [...$("#tabs").children].forEach(c => c.setAttribute("aria-selected", c.dataset.k === state.kind));
   shown = PAGE; refresh();
+}
+// Mileage is the second question every used-car buyer asks, and it is meaningless on the New
+// tab where every car reads single digits. Steps are 10,000 miles, counted against every other
+// active filter, and a cap that would return nothing is never offered.
+function buildMiles(){
+  const wrap = $("#fmiwrap"), sel = $("#fmiles"), STEP = 10000;
+  if (state.kind !== "used"){
+    wrap.classList.add("hide"); sel.innerHTML = ""; state.maxmi = 0; return;
+  }
+  wrap.classList.remove("hide");
+  const mp = pool(["maxmi"]);
+  const ms = mp.map(v => v.mi).filter(Boolean);
+  let steps = [];
+  if (ms.length){
+    const hi = Math.max(...ms);
+    for (let c = STEP; c < hi + STEP; c += STEP) steps.push(c);
+  }
+  steps = steps.map(c => [c, mp.filter(v => (v.mi || 0) <= c).length]).filter(([, n]) => n > 0);
+  // Two caps that return the same cars are one choice, not two: keep the lower one.
+  steps = steps.filter(([, n], i) => i === 0 || n !== steps[i-1][1]);
+  if (state.maxmi && !steps.some(([c]) => c === state.maxmi)){
+    steps.push([state.maxmi, mp.filter(v => (v.mi || 0) <= state.maxmi).length]);
+    steps.sort((a,b) => a[0] - b[0]);
+  }
+  sel.innerHTML = `<option value="0">Any mileage</option>` +
+    steps.map(([c,n]) => `<option value="${c}">Under ${c.toLocaleString("en-US")} mi (${n})</option>`).join("");
+  sel.value = String(state.maxmi || 0);
 }
 // Trim only makes sense inside a model: 31 trim names exist but "EX" belongs to nine
 // different Kias, so a standalone list would mix Carnival EXs with K4 EXs.
@@ -802,7 +894,7 @@ function syncBadge(){
   bd.textContent = n; bd.classList.toggle("on", n>0);
 }
 function clearFilters(){
-  state.maxp = 0; state.model = "All"; state.drive = "All"; state.fuel = "All";
+  state.maxp = 0; state.maxmi = 0; state.fresh = false; state.drop = false; state.cpo = false; state.saved = false; state.model = "All"; state.drive = "All"; state.fuel = "All";
   state.trim = "All"; state.feat = [];
 }
 
@@ -821,6 +913,15 @@ $("#bodychips").addEventListener("click", e => {
   state.body = b.dataset.b; applyChange();
 });
 $("#lotbtn").addEventListener("click", () => { state.lot = !state.lot; applyChange(); });
+[["#nwbtn","fresh"],["#dropbtn","drop"],["#cpobtn","cpo"],["#savebar","saved"]].forEach(([sel,key]) => {
+  $(sel).addEventListener("click", () => { state[key] = !state[key]; applyChange(); });
+});
+$("#grid").addEventListener("click", e => {
+  const s = e.target.closest("[data-save]");
+  if (!s) return;
+  e.stopPropagation(); e.preventDefault();
+  toggleSave(s.dataset.save);
+}, true);
 $("#q").addEventListener("input", e => { state.q = e.target.value.toLowerCase().trim(); applyChange(false); });
 $("#fbtn").addEventListener("click", () => {
   const open = $("#fpanel").classList.toggle("on");
@@ -838,6 +939,7 @@ function closeFilters(){
 }
 $("#fdone").addEventListener("click", closeFilters);
 $("#fprice").addEventListener("change", e => { state.maxp = +e.target.value; applyChange(); });
+$("#fmiles").addEventListener("change", e => { state.maxmi = +e.target.value; applyChange(); });
 $("#fmodel").addEventListener("change", e => {
   state.model = e.target.value; state.trim = "All"; applyChange();
 });
@@ -888,6 +990,26 @@ function render(){
     ? "No vehicles match those filters." + (state.q ? " Try clearing the search too." : "")
     : "No vehicles match that search.";
   $("#emptyclear").hidden = !(nf || lotBlocks);
+  if (state.saved && !r.length)
+    $("#emptymsg").textContent = "You have not saved any cars yet. Tap the heart on a car to keep it here.";
+  const tb = $("#savetext");
+  if (tb){
+    const cars = savedCars();
+    tb.hidden = !(state.saved && cars.length);
+    tb.href = "sms:" + PHONE + "?&body=" + encodeURIComponent(savedText());
+    tb.textContent = cars.length === 1 ? "Text my saved car to Stephan" : "Text my " + cars.length + " saved cars to Stephan";
+    // The text covers every saved car, but the grid can only show one tab at a time, so say
+    // where the others are rather than letting the two numbers disagree in silence.
+    const other = cars.length - r.length;
+    const note = $("#savenote");
+    if (note){
+      note.hidden = !(state.saved && other > 0);
+      note.textContent = other > 0
+        ? other + (other === 1 ? " more saved car is" : " more saved cars are") +
+          " under " + (state.kind === "new" ? "Pre-Owned" : "New Kias") + "."
+        : "";
+    }
+  }
   $("#grid").innerHTML = r.slice(0, shown).map(cardHTML).join("");
   paintMore(r.length);
 }
@@ -915,10 +1037,12 @@ function cardLabel(v){
 }
 function cardHTML(v){
   return `
+    <div class="cardwrap">
+    <button type="button" class="savebtn" data-save="${esc(v.s)}" aria-pressed="${SAVED.has(v.s)}" aria-label="Save ${esc(label(v))}">${SAVED.has(v.s)?"\u2665":"\u2661"}</button>
     <button class="card" data-s="${esc(v.s)}" aria-label="${esc(cardLabel(v))}">
       <div class="shot"><img class="${v.br?'brd':''}" src="${esc(img(v.g[0],600))}" srcset="${esc(srcset(v.g[0], CARD_W))}" sizes="${CARD_SIZES}" alt="${esc(label(v))}" loading="lazy" decoding="async" width="600" height="450">
         ${v.nw?`<span class="flag">Just arrived</span>`:""}
-        ${v.g.length>1?`<span class="nph">${v.g.length} photos</span>`:""}</div>
+        ${nph(v)>1?`<span class="nph">${nph(v)} photos</span>`:""}</div>
       <div class="cbody">
         ${v.k==="new"?`<div class="msrp">MSRP</div>`:""}
         <div class="wasrow"><div class="price tnum">${money(v.p)}</div>${v.was?`<span class="was tnum">${money(v.was)}</span>`:""}</div>
@@ -926,8 +1050,9 @@ function cardHTML(v){
         <div class="name">${esc(label(v))}</div>
         ${v.tr?`<div class="trim">${esc(v.tr)}</div>`:""}
         <div class="meta tnum">${v.k==="new"?`<span><b>New</b></span><span>${esc(v.dr||v.b)}</span>`:`<span><b>${miles(v.mi)}</b></span><span>${esc(v.dr||v.b)}</span>`}</div>
+        ${v.cpo?`<div style="margin-top:8px"><span class="cpo">${esc(v.cpo)}</span></div>`:""}
       </div>
-    </button>`;
+    </button></div>`;
 }
 
 $("#moreBtn").addEventListener("click", showMore);
@@ -1022,12 +1147,12 @@ function setPhoto(i){
   }
   if (n > 1){ warmPhoto(cur.g[(gi + 1) % n]); warmPhoto(cur.g[(gi - 1 + n) % n]); }
 }
-function open(v){
+function paintSheet(v){
   cur = v; gi = 0;
   const msg = encodeURIComponent(`Hi Stephan, I'm interested in the ${label(v)}${v.tr?" "+v.tr:""} (Stock ${v.s}). Is it still available?`);
   const spec = [[v.k==="new"?"Odometer":"Mileage", v.mi?miles(v.mi):(v.k==="new"?"New":"")],["Body Style",v.b],["Exterior",v.ex],["Interior",v.inr],
                 ["Transmission",v.tx],["Drivetrain",v.dr],["Fuel",v.fu],["Engine",v.en],
-                ["Stock #",v.s],["VIN",v.vin]].filter(x=>x[1]);
+                ["Stock #",v.s],["VIN",v.vin],["Certified",v.cpo||""]].filter(x=>x[1]);
   $("#stitle").textContent = label(v);
   $("#sheetin").innerHTML = `
     <div class="gal">
@@ -1083,6 +1208,10 @@ function open(v){
     }, {passive:true});
     setPhoto(0);
   }
+}
+function open(v){
+  paintSheet(v);
+  loadDetails();
   CH.detailViews++; TRACK.viewed.add(v.s);
   $("#cbub").hidden = true; $("#cpanel").hidden = true;
   $("#sheet").classList.add("on");
@@ -1161,7 +1290,7 @@ paintToggle();
 const SITE = "https://stephansellscars.com";
 function goHome(){
   if ($("#sheet").classList.contains("on")) close();
-  state.kind = "new"; state.q = ""; state.body = "All"; state.sort = "pl"; state.lot = false;
+  state.kind = "new"; state.q = ""; state.body = "All"; state.sort = "pl"; state.lot = false; state.maxmi = 0;
   clearFilters();
   V = DATA.new; shown = PAGE;
   $("#q").value = ""; $("#sort").value = state.sort;
@@ -1438,7 +1567,7 @@ function cTextThese(hits){
          ["Back to the cars", () => cResults(), true]]);
 }
 function cApply(n){
-  state.lot = false;
+  state.lot = false; state.maxmi = CH.maxmi || 0;
   state.kind = CH.kind; V = cPool(); state.maxp = CH.maxp; state.body = "All";
   state.model = "All"; state.drive = "All"; state.fuel = "All"; state.q = "";
   state.trim = "All"; state.feat = CH.feat.slice();
@@ -1556,6 +1685,59 @@ addEventListener("scroll", () => {
   const max = document.documentElement.scrollHeight - innerHeight;
   if (max > 400 && (scrollY / max > 0.45 || scrollY > innerHeight * 2)) chatNudge();
 }, { passive: true });
+// Photo count travels in the light file as np; before the details land v.g holds one tail.
+const SAVE_KEY = "ssc-saved";
+const SAVED = new Set(loadSaved());
+function loadSaved(){
+  try { return JSON.parse(localStorage.getItem(SAVE_KEY) || "[]").filter(x => typeof x === "string"); }
+  catch (e) { return []; }
+}
+function storeSaved(){
+  try { localStorage.setItem(SAVE_KEY, JSON.stringify([...SAVED])); } catch (e) {}
+}
+function savedCars(){
+  if (!DATA) return [];
+  return [...DATA.new, ...DATA.used].filter(v => SAVED.has(v.s));
+}
+function toggleSave(s){
+  if (SAVED.has(s)) SAVED.delete(s); else SAVED.add(s);
+  storeSaved();
+  document.querySelectorAll(`[data-save="${CSS.escape(s)}"]`).forEach(b => {
+    b.setAttribute("aria-pressed", String(SAVED.has(s)));
+    b.textContent = SAVED.has(s) ? "\u2665" : "\u2661";
+  });
+  buildQuick();
+  if (state.saved) { shown = PAGE; refresh(); }
+  say(SAVED.has(s) ? "Saved. " + SAVED.size + " saved." : "Removed. " + SAVED.size + " saved.");
+}
+function savedText(){
+  const cars = savedCars();
+  if (!cars.length) return "";
+  const lines = cars.slice(0, 8).map(v => label(v) + (v.tr ? " " + v.tr : "") + " (stock " + v.s + ")");
+  return "Hi Stephan, these are the ones I saved: " + lines.join("; ") + ". Can we talk?";
+}
+const nph = v => v.np || (v.g ? v.g.length : 0);
+function mergeDetails(d){
+  const rows = (d && d.v) || {};
+  let hit = 0;
+  [...DATA.new, ...DATA.used].forEach(v => {
+    const row = rows[v.s];
+    if (!row) return;
+    hit++;
+    if (Array.isArray(row.g) && row.g.length) v.g = row.g;
+    if (row.d) v.d = row.d;
+  });
+  DETAILS = hit ? 2 : -1;
+  if (hit && cur && $("#sheet").classList.contains("on")) paintSheet(cur);
+}
+function loadDetails(){
+  if (DETAILS) return;
+  DETAILS = 1;
+  fetch(DETAIL_URL, { cache: "no-cache" })
+    .then(r => { if (!r.ok) throw new Error("HTTP " + r.status); return r.json(); })
+    .then(mergeDetails)
+    .catch(() => { DETAILS = -1; });
+}
 function start(data){
   DATA = data;
   FEATS = DATA.feats || [];
@@ -1565,11 +1747,16 @@ function start(data){
   $("#loading").hidden = true;
   $("#dataerr").hidden = true;
   $(".controls").hidden = false;
-  chips(); buildLot(); buildFilters();
+  chips(); buildLot(); buildQuick(); buildFilters();
   const when = DATA.updated ? new Date(DATA.updated + "T12:00:00") : new Date(document.lastModified);
   $("#stamp").textContent = "Inventory updated " +
     when.toLocaleDateString("en-US", { month: "long", day: "numeric", year: "numeric" });
   render();
+  // Already-whole data (the pre-split file, or a details fetch that fails) still works: the
+  // vehicles simply arrive with every photo attached.
+  if (DATA.new.some(v => v.g && v.g.length > 1) || DATA.used.some(v => v.g && v.g.length > 1)) DETAILS = 2;
+  else if ("requestIdleCallback" in window) requestIdleCallback(loadDetails, { timeout: 2500 });
+  else setTimeout(loadDetails, 1200);
   if (hasFilterParams()) applySearchParams();
   const DL = (new URLSearchParams(location.search).get("v") || decodeURIComponent(location.hash.slice(1)) || "").trim();
   if (DL){
