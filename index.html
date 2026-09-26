@@ -149,8 +149,10 @@ input:focus-visible,select:focus-visible,button:focus-visible,a:focus-visible{ou
   background:rgba(255,255,255,.92);border:1px solid var(--rule);color:#111;display:grid;place-items:center;
   cursor:pointer;font-size:16px;line-height:1;padding:0}
 .savebtn[aria-pressed="true"]{background:var(--accent);border-color:var(--accent);color:#fff}
-.btn-save{background:var(--surface);color:var(--ink);border:1px solid var(--rule);cursor:pointer}
-.btn-save[aria-pressed="true"]{border-color:var(--accent);color:var(--accent)}
+.btn-save{background:var(--surface);color:var(--muted);border:1px solid var(--rule);cursor:pointer;
+  justify-content:center;width:100%;padding:11px;font-size:14px;margin-top:-4px}
+.btn-save:hover{color:var(--ink)}
+.btn-save[aria-pressed="true"]{border-color:var(--accent);color:var(--accent);background:var(--surface)}
 .savebar{display:flex;gap:10px;align-items:center;flex-wrap:wrap;max-width:1180px;margin:0 auto;padding:0 18px 12px}
 .cardwrap{position:relative;display:flex}
 .cardwrap > .card{flex:1 1 auto;min-width:0}
@@ -1358,10 +1360,10 @@ function paintSheet(v){
         ${v.tr?`<p class="dtrim">${esc(v.tr)}</p>`:""}
       </div>
       <div class="acts">
-        <button type="button" class="btn btn-save" data-save="${esc(v.s)}" data-label="1" aria-pressed="${SAVED.has(v.s)}">${SAVED.has(v.s) ? "\u2665 Saved" : "\u2661 Save this car"}</button>
         <a class="btn btn-a" href="sms:${PHONE}?&body=${msg}">Text about this car</a>
         <a class="btn btn-b" style="background:var(--surface-2);color:var(--ink);border:1px solid var(--rule)" href="tel:${PHONE}">Call <span class="phnum">(708) 963-3553</span></a>
       </div>
+      <button type="button" class="btn btn-save" data-save="${esc(v.s)}" data-label="1" aria-pressed="${SAVED.has(v.s)}">${SAVED.has(v.s) ? "\u2665 Saved" : "\u2661 Save this car"}</button>
       <div class="specs"><dl>${spec.map(([k,val])=>
         `<div class="row"><dt>${esc(k)}</dt><dd class="${k==="VIN"||k==="Mileage"?"tnum":""}">${esc(val)}</dd></div>`).join("")}</dl></div>
       ${v.d?`<div class="desc"><h2>About this vehicle</h2><p>${esc(v.d)}</p></div>`:""}
